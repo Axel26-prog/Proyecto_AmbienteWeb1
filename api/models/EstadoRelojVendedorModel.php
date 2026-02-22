@@ -1,5 +1,5 @@
 <?php
-class EstadoUsuarioModel
+class EstadoRelojVendedorModel
 {
     public $enlace;
 
@@ -11,15 +11,15 @@ class EstadoUsuarioModel
     /* Listar todos */
     public function all()
     {
-        $vSql = "SELECT * FROM estado_usuario;";
+        $vSql = "SELECT * FROM estado_reloj_vendedor;";
         return $this->enlace->ExecuteSQL($vSql);
     }
 
     /* Obtener uno */
     public function get($id)
     {
-        $vSql = "SELECT * FROM estado_usuario
-                 WHERE id_estado_usuario = $id;";
+        $vSql = "SELECT * FROM estado_reloj_vendedor
+                 WHERE id_estado_reloj_vendedor = $id;";
 
         $resultado = $this->enlace->ExecuteSQL($vSql);
 
@@ -29,7 +29,7 @@ class EstadoUsuarioModel
     /* Crear */
     public function create($obj)
     {
-        $vSql = "INSERT INTO estado_usuario
+        $vSql = "INSERT INTO estado_reloj_vendedor
                  (nombre)
                  VALUES
                  ('$obj->nombre');";
@@ -40,9 +40,9 @@ class EstadoUsuarioModel
     /* Actualizar */
     public function update($obj)
     {
-        $vSql = "UPDATE estado_usuario SET
+        $vSql = "UPDATE estado_reloj_vendedor SET
                  nombre = '$obj->nombre'
-                 WHERE id_estado_usuario = $obj->id_estado_usuario;";
+                 WHERE id_estado_reloj_vendedor = $obj->id_estado_reloj_vendedor;";
 
         return $this->enlace->ExecuteSQL_DML($vSql);
     }
@@ -50,8 +50,8 @@ class EstadoUsuarioModel
     /* Eliminar */
     public function delete($id)
     {
-        $vSql = "DELETE FROM estado_usuario
-                 WHERE id_estado_usuario = $id;";
+        $vSql = "DELETE FROM estado_reloj_vendedor
+                 WHERE id_estado_reloj_vendedor = $id;";
 
         return $this->enlace->ExecuteSQL_DML($vSql);
     }
