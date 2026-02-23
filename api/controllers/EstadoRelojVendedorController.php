@@ -1,121 +1,87 @@
 <?php
-class SubastaController
+class EstadoRelojVendedorController
 {
+    /* Listar todos */
     public function index()
     {
         try {
-
             $response = new Response();
 
-            $model = new SubastaModel();
-
+            $model = new EstadoRelojVendedorModel();
             $result = $model->all();
 
             $response->toJSON($result);
 
         } catch (Exception $e) {
-
             handleException($e);
-
         }
     }
 
+    /* Obtener uno */
     public function get($id)
     {
         try {
-
             $response = new Response();
 
-            $model = new SubastaModel();
-
+            $model = new EstadoRelojVendedorModel();
             $result = $model->get($id);
 
             $response->toJSON($result);
 
         } catch (Exception $e) {
-
             handleException($e);
-
         }
     }
 
+    /* Crear */
     public function create()
     {
         try {
-
             $request = json_decode(file_get_contents("php://input"));
 
-            $model = new SubastaModel();
-
-            $result = $model->create($request);
-
             $response = new Response();
+
+            $model = new EstadoRelojVendedorModel();
+            $result = $model->create($request);
 
             $response->toJSON($result);
 
         } catch (Exception $e) {
-
             handleException($e);
-
         }
     }
 
+    /* Actualizar */
     public function update()
     {
         try {
-
             $request = json_decode(file_get_contents("php://input"));
 
-            $model = new SubastaModel();
-
-            $result = $model->update($request);
-
             $response = new Response();
+
+            $model = new EstadoRelojVendedorModel();
+            $result = $model->update($request);
 
             $response->toJSON($result);
 
         } catch (Exception $e) {
-
             handleException($e);
-
         }
     }
 
+    /* Eliminar */
     public function delete($id)
     {
         try {
+            $response = new Response();
 
-            $model = new SubastaModel();
-
+            $model = new EstadoRelojVendedorModel();
             $result = $model->delete($id);
 
-            $response = new Response();
-
             $response->toJSON($result);
 
         } catch (Exception $e) {
-
             handleException($e);
-
-        }
-    }
-
-    public function activas()
-    {
-        try {
-
-            $response = new Response();
-
-            $model = new SubastaModel();
-
-            $result = $model->getActivas();
-
-            $response->toJSON($result);
-
-        } catch (Exception $e) {
-
-            handleException($e);
-
         }
     }
 }
