@@ -23,11 +23,11 @@ import FranckMullerCafe from "../../assets/Marcas/FrankMullerCafe.png";
 /* IMPORTANTE: usar exactamente los nombres como vienen en la BD */
 const BRAND_LOGOS = {
     Rolex: { active: RolexAmarillo, inactive: RolexCafe },
-    "Patek Philippe": { active: PatekPhilippeAmarillo, inactive: PatekPhilippeCafe },
+    PatekPhilippe: { active: PatekPhilippeAmarillo, inactive: PatekPhilippeCafe },
     Cartier: { active: CartierAmarillo, inactive: CartierCafe },
-    "Audemars Piguet": { active: AudemarsPiguetAmarillo, inactive: AudemarsPiguetCafe },
-    "Ulysse Nardin": { active: UlysseNardinAmarillo, inactive: UlysseNardinCafe },
-    "Franck Muller": { active: FranckMullerAmarillo, inactive: FranckMullerCafe },
+    AudemarsPiguet: { active: AudemarsPiguetAmarillo, inactive: AudemarsPiguetCafe },
+    UlysseNardin: { active: UlysseNardinAmarillo, inactive: UlysseNardinCafe },
+    FranckMuller: { active: FranckMullerAmarillo, inactive: FranckMullerCafe },
 };
 
 function BrandMenuBar() {
