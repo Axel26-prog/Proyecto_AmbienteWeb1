@@ -20,14 +20,19 @@ import UlysseNardinCafe from "../../assets/Marcas/UlysseNardinCafe.png";
 import FranckMullerAmarillo from "../../assets/Marcas/FrankMullerAmarillo.png";
 import FranckMullerCafe from "../../assets/Marcas/FrankMullerCafe.png";
 
-/* IMPORTANTE: usar exactamente los nombres como vienen en la BD */
+
+function normalizeName(name = "") {
+    return name.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/** IMPORTANTE: que el nombre coincida con la BD (pero usamos normalizeName) */
 const BRAND_LOGOS = {
-    Rolex: { active: RolexAmarillo, inactive: RolexCafe },
-    PatekPhilippe: { active: PatekPhilippeAmarillo, inactive: PatekPhilippeCafe },
-    Cartier: { active: CartierAmarillo, inactive: CartierCafe },
-    AudemarsPiguet: { active: AudemarsPiguetAmarillo, inactive: AudemarsPiguetCafe },
-    UlysseNardin: { active: UlysseNardinAmarillo, inactive: UlysseNardinCafe },
-    FranckMuller: { active: FranckMullerAmarillo, inactive: FranckMullerCafe },
+    "rolex": { active: RolexAmarillo, inactive: RolexCafe },
+    "patek philippe": { active: PatekPhilippeAmarillo, inactive: PatekPhilippeCafe },
+    "cartier": { active: CartierAmarillo, inactive: CartierCafe },
+    "audemars piguet": { active: AudemarsPiguetAmarillo, inactive: AudemarsPiguetCafe },
+    "ulysse nardin": { active: UlysseNardinAmarillo, inactive: UlysseNardinCafe },
+    "franck muller": { active: FranckMullerAmarillo, inactive: FranckMullerCafe },
 };
 
 function BrandMenuBar() {
@@ -38,19 +43,26 @@ function BrandMenuBar() {
             <div className="mx-auto flex w-full max-w-6xl items-center justify-center gap-12 overflow-x-auto px-4 py-6">
                 {brands.map((b) => {
                     const isActive = activeBrand === b.key;
-                    const logoSet = BRAND_LOGOS[b.name];
+
+                    const normalized = normalizeName(b.name);
+                    const logoSet = BRAND_LOGOS[normalized];
 
                     return (
                         <button
                             key={b.key}
                             onClick={() => setActiveBrand(b.key)}
-                            className="group relative flex flex-col items-center gap-3 transition"
+                            className="group relative flex shrink-0 flex-col items-center gap-3 transition"
                         >
-                            {/* LOGO MARCA */}
+                            {/* LOGO MARCA (swap) */}
                             <img
-                                src={logoSet ? (isActive ? logoSet.active : logoSet.inactive) : RolexCafe}
+                                src={
+                                    logoSet
+                                        ? (isActive ? logoSet.active : logoSet.inactive)
+                                        : RolexCafe // fallback si una marca no está en el map
+                                }
                                 alt={b.name}
                                 className="h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-110"
+                                draggable="false"
                             />
 
                             {/* NOMBRE */}
@@ -80,11 +92,12 @@ function BrandMenuBar() {
     );
 }
 
+
 export default function Header() {
     return (
         <header className="bg-white">
             <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
-                
+
                 <a href="#" className="flex items-center">
                     <img src={logo} alt="CrownTime" className="h-20 w-auto object-contain" />
                 </a>
