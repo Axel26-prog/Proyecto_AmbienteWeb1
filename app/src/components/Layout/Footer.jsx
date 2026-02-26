@@ -13,21 +13,11 @@ export default function Footer() {
     <footer className="mt-auto border-t border-[#845b34]/15 bg-white">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <BrandLogoMark />
-          <div>
-            <div className="font-[Montserrat] text-sm font-extrabold text-[#5b3717]">
-              CrownTime
-            </div>
-            <div className="font-[Montserrat] text-xs text-[#845b34]/70">
-              Subastas de relojes de lujo
-            </div>
-          </div>
+          
+          
         </div>
 
         <div className="flex flex-wrap items-center gap-4 font-[Montserrat] text-sm font-semibold text-[#845b34]">
-          <a href="#" className="hover:text-[#e8a96e]">
-            Acerca de
-          </a>
           <a href="#" className="hover:text-[#e8a96e]">
             Términos
           </a>
@@ -37,7 +27,7 @@ export default function Footer() {
         </div>
 
         <div className="font-[Montserrat] text-xs text-[#845b34]/70">
-          © {new Date().getFullYear()} CrownTime. Todos los derechos reservados.
+          © {new Date().getFullYear()} CrownTime Collective. Todos los derechos reservados.
         </div>
       </div>
     </footer>
