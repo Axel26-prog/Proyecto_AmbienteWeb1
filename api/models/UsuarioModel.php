@@ -51,6 +51,45 @@ class UsuarioModel
         return $vResultado[0];
     }
 
+    /* Obtener detalle con historial */
+public function getDetalle($id)
+{
+    $vSql = "SELECT 
+                u.id_usuario,
+                u.nombre,
+                u.apellido,
+                u.correo,
+                u.telefono,
+                u.fecha_registro,
+                r.nombre AS rol,
+                eu.nombre AS estado,
+
+                (
+                    SELECT COUNT(*)
+                    FROM subasta s
+                    INNER JOIN reloj_vendedor rv 
+                        ON s.id_reloj_vendedor = rv.id_reloj_vendedor
+                    WHERE rv.id_usuario_vendedor = u.id_usuario
+                ) AS cantidad_subastas,
+
+                (
+                    SELECT COUNT(*)
+                    FROM puja p
+                    WHERE p.id_usuario = u.id_usuario
+                ) AS cantidad_pujas
+
+            FROM usuario u
+            INNER JOIN rol r
+                ON u.id_rol = r.id_rol
+            INNER JOIN estado_usuario eu
+                ON u.id_estado_usuario = eu.id_estado_usuario
+            WHERE u.id_usuario = $id;";
+
+    $vResultado = $this->enlace->ExecuteSQL($vSql);
+
+    return $vResultado[0];
+}
+
     /* Crear usuario */
     public function create($obj)
     {

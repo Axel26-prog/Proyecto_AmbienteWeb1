@@ -111,4 +111,21 @@ class UsuarioController
             handleException($e);
         }
     }
+
+    public function detalle($id)
+{
+    try {
+        $response = new Response();
+
+        $model = new UsuarioModel();
+
+        $result = $model->getDetalle($id);
+
+        $response->toJSON($result);
+
+    } catch (Exception $e) {
+
+        handleException($e);
+    }
+}
 }
