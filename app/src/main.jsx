@@ -6,6 +6,7 @@ import Layout from "./components/Layout/Layout";
 import { BrandProvider } from "./context/BrandContext";
 import UsuariosPages from "./pages/UsuariosPages";
 import HomePage from "./pages/HomePage";
+import ObjetosPages from "./pages/ObjetosPages"; 
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -15,6 +16,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="usuarios" element={<UsuariosPages />} />
+            <Route path="objetos" element={<ObjetosPages />} /> 
           </Route>
         </Routes>
       </BrowserRouter>

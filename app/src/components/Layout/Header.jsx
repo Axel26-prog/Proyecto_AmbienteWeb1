@@ -99,10 +99,12 @@ function BrandMenuBar() {
 
 export default function Header() {
   const [catOpen, setCatOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   return (
     <header className="bg-white">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
+        
         {/* LOGO */}
         <Link to="/" className="flex items-center">
           <img
@@ -123,13 +125,40 @@ export default function Header() {
         </button>
 
         {/* LINKS DERECHA */}
-        <div className="flex items-center gap-4">
-          <Link
-            to="/usuarios"
-            className="hidden font-[Montserrat] text-sm font-semibold text-[#5b3717] hover:text-[#e8a96e] sm:inline"
+        <div className="flex items-center gap-6">
+          
+          {/* DROPDOWN */}
+          <div
+        className="relative hidden sm:block z-50"
+        onMouseLeave={() => setUserMenuOpen(false)}
           >
-            Usuarios
-          </Link>
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="font-[Montserrat] text-sm font-semibold text-[#5b3717] hover:text-[#e8a96e] transition"
+            >
+              Gestion ▾
+            </button>
+
+            {userMenuOpen && (
+             <div className="absolute right-0 top-full w-56 rounded-md border border-[#845b34]/20 bg-white shadow-lg z-50">
+                <Link
+                  to="/usuarios"
+                  className="block px-4 py-3 font-[Montserrat] text-sm text-[#5b3717] hover:bg-[#845b34]/5"
+                  onClick={() => setUserMenuOpen(false)}
+                >
+                  Gestión de Usuarios
+                </Link>
+
+                <Link
+                  to="/objetos"
+                  className="block px-4 py-3 font-[Montserrat] text-sm text-[#5b3717] hover:bg-[#845b34]/5"
+                  onClick={() => setUserMenuOpen(false)}
+                >
+                  Objetos Subastables
+                </Link>
+              </div>
+            )}
+          </div>
 
           <Link
             to="/acerca"
@@ -144,6 +173,7 @@ export default function Header() {
           >
             Iniciar Sesión
           </Link>
+
         </div>
       </div>
 
