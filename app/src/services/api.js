@@ -9,5 +9,5 @@ export async function apiFetch(endpoint) {
   }
 
   const json = await response.json();
-  return json.data;
+  return json.data ?? json;
 }

@@ -24,14 +24,69 @@ class RelojModel
     }
 
     /* Obtener por ID */
-    public function get($id)
-    {
-        $vSql = "SELECT * FROM reloj WHERE id_reloj=$id;";
+  public function get($id)
+{
+    $vSql = "SELECT r.*,
+                    rv.id_reloj_vendedor,
+                    u.id_usuario,
+                    u.nombre,
+                    u.apellido
+            FROM reloj r
+            LEFT JOIN reloj_vendedor rv 
+                ON r.id_reloj = rv.id_reloj
+            LEFT JOIN usuario u 
+                ON rv.id_usuario_vendedor = u.id_usuario
+            WHERE r.id_reloj = $id;";
 
-        $vResultado = $this->enlace->ExecuteSQL($vSql);
+    $resultado = $this->enlace->ExecuteSQL($vSql);
 
-        return $vResultado[0];
+    if (empty($resultado)) {
+        return null;
     }
+
+    $reloj = $resultado[0];
+
+    // Valores por defecto
+    $vendedor = null;
+    $historial = [];
+
+    // Si tiene vendedor
+    if ($reloj->id_reloj_vendedor != null) {
+
+        $vendedor = [
+            "id_usuario" => $reloj->id_usuario,
+            "nombre" => $reloj->nombre,
+            "apellido" => $reloj->apellido
+        ];
+
+        // Buscar historial
+        $vSqlHistorial = "SELECT 
+                                id_subasta,
+                                fecha_inicio,
+                                fecha_fin,
+                                precio_inicial,
+                                incremento_minimo,
+                                id_estado_subasta
+                          FROM subasta
+                          WHERE id_reloj_vendedor = $reloj->id_reloj_vendedor;";
+
+        $historial = $this->enlace->ExecuteSQL($vSqlHistorial) ?? [];
+    }
+
+    // Construcción final SIEMPRE aquí
+    $relojFinal = [
+        "id_reloj" => $reloj->id_reloj,
+        "modelo" => $reloj->modelo,
+        "descripcion" => $reloj->descripcion,
+        "imagen" => $reloj->imagen,
+        "anio_fabricacion" => $reloj->anio_fabricacion,
+        "precio_estimado" => $reloj->precio_estimado,
+        "vendedor" => $vendedor,
+        "historial_subastas" => $historial
+    ];
+
+    return $relojFinal;
+}
 
     /* Crear */
     public function create($obj)
