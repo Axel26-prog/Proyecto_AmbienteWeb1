@@ -11,14 +11,15 @@ export default function ObjetosPage() {
   }, []);
 
   const cargarRelojes = async () => {
-    try {
-      const data = await getRelojes();
-      setRelojes(Array.isArray(data) ? data : []); // asegura un array
-    } catch (error) {
-      console.error("Error cargando relojes", error);
-      setRelojes([]); // fallback
-    }
-  };
+  try {
+    const data = await getRelojes();
+    console.log("Respuesta API:", data); // 👈 AQUÍ
+    setRelojes(data); // temporal para inspeccionar estructura
+  } catch (error) {
+    console.error("Error cargando relojes", error);
+    setRelojes([]);
+  }
+};
 
   const verDetalle = async (id) => {
     if (!id) return;
