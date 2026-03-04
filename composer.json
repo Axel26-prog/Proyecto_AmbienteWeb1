@@ -1,0 +1,6 @@
+{
+    "name": "estel/appsubasta",
+    "require": {
+        "slim/slim": "4.13"
+    }
+}

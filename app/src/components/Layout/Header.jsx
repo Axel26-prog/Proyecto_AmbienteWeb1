@@ -1,71 +1,81 @@
 import { Link } from "react-router-dom";
 import React, { useState } from "react";
-import BrandMenuBar from "../Layout/BrandMenuBar";
-
 import logo from "../../assets/Logo/Logo.png";
 
 export default function Header() {
   const [catOpen, setCatOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   return (
     <header className="bg-white">
-
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
-
+        {/* Logo */}
         <Link to="/" className="flex items-center">
           <img src={logo} alt="CrownTime" className="h-20 w-auto object-contain" />
         </Link>
 
-        <button
-          onClick={() => setCatOpen(!catOpen)}
-          className="flex items-center gap-2 rounded-full border border-[#845b34]/30 bg-white px-6 py-3 font-[Montserrat] text-sm font-semibold text-[#5b3717]"
+        {/* Categorías (dropdown principal) */}
+        <div
+          className="relative z-50"
+          onMouseLeave={() => setCatOpen(false)}
         >
-          Categorías ▾
-        </button>
-
-        {/* GESTION NO TOCADO */}
-        <div className="flex items-center gap-6">
-
-          <div
-            className="relative hidden sm:block z-50"
-            onMouseLeave={() => setUserMenuOpen(false)}
+          <button
+            onClick={() => setCatOpen(!catOpen)}
+            className="flex items-center gap-2 rounded-full border border-[#845b34]/30 bg-white px-6 py-3 font-[Montserrat] text-sm font-semibold text-[#5b3717]"
           >
-            <button
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="font-[Montserrat] text-sm font-semibold text-[#5b3717]"
-            >
-              Gestion ▾
-            </button>
+            Categorías ▾
+          </button>
 
-            {userMenuOpen && (
-              <div className="absolute right-0 top-full w-56 rounded-md border border-[#845b34]/20 bg-white shadow-lg">
-                <Link
-                  to="/usuarios"
-                  className="block px-4 py-3 text-sm text-[#5b3717]"
-                >
-                  Gestión de Usuarios
-                </Link>
+          {catOpen && (
+            <div className="absolute right-0 top-full mt-2 w-64 rounded-md border border-[#845b34]/20 bg-white shadow-lg overflow-hidden">
+              <Link
+                to="/objetos"
+                className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
+                onClick={() => setCatOpen(false)}
+              >
+                Ver todas las subastas
+              </Link>
 
-                <Link
-                  to="/objetos"
-                  className="block px-4 py-3 text-sm text-[#5b3717]"
-                >
-                  Objetos Subastables
-                </Link>
-              </div>
-            )}
-          </div>
+              <div className="h-px bg-[#845b34]/10" />
 
-        
+              {/* Ejemplos de categorías (ajusta rutas a las tuyas) */}
+              <Link
+                to="/objetos?categoria=lujo"
+                className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
+                onClick={() => setCatOpen(false)}
+              >
+                Relojes de lujo
+              </Link>
+
+              <Link
+                to="/objetos?categoria=coleccion"
+                className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
+                onClick={() => setCatOpen(false)}
+              >
+                De colección
+              </Link>
+
+              <Link
+                to="/objetos?categoria=usados"
+                className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
+                onClick={() => setCatOpen(false)}
+              >
+                Usados
+              </Link>
+
+              <Link
+                to="/objetos?categoria=nuevos"
+                className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
+                onClick={() => setCatOpen(false)}
+              >
+                Nuevos
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Línea */}
       <div className="h-[3px] w-full bg-[#845b34]/70" />
-
-      {/* MENU DE MARCAS */}
-      <BrandMenuBar />
-
     </header>
   );
 }
