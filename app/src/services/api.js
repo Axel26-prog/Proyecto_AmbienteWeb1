@@ -1,5 +1,5 @@
 const API_BASE =
-  import.meta.env.VITE_API_URL || "http://localhost/appsubasta/api";
+  import.meta.env.VITE_API_URL || "http://localhost:81/appsubasta/api";
 
 export async function apiFetch(endpoint) {
   const response = await fetch(`${API_BASE}/${endpoint}`);
