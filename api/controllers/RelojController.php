@@ -5,6 +5,15 @@ class RelojController
     {
         $model = new RelojModel();
 
+        //si se selecciona una marca
+        if (isset($_GET["marca"])) 
+        {
+            $idMarca = intval($_GET["marca"]);
+            $response = $model->allByMarca($idMarca);
+            echo json_encode($response);
+            return;
+        }
+        //si no trae a todos
         $response = $model->all();
 
         echo json_encode($response);

@@ -35,7 +35,7 @@ export default function HomePage() {
 
         <div className="flex justify-center gap-6">
           <Link
-            to="/objetos"
+            to="/subastas"
             className="px-7 py-3 rounded-lg font-semibold shadow-lg transition hover:opacity-90"
             style={{
               backgroundColor: "#e8a96e",

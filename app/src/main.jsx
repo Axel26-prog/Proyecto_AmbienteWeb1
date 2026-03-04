@@ -8,6 +8,7 @@ import { BrandProvider } from "./context/BrandContext";
 import UsuariosPages from "./pages/UsuariosPages";
 import HomePage from "./pages/HomePage";
 import ObjetosPages from "./pages/ObjetosPages"; 
+import SubastaPage from "./pages/SubastaPage"; 
 
 import React from "react";
 
@@ -22,6 +23,7 @@ createRoot(document.getElementById("root")).render(
             <Route index element={<HomePage />} />
             <Route path="usuarios" element={<UsuariosPages />} />
             <Route path="objetos" element={<ObjetosPages />} /> 
+            <Route path="subastas" element={<SubastaPage />} /> 
           </Route>
         </Routes>
       </BrowserRouter>
