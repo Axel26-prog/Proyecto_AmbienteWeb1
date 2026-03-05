@@ -26,14 +26,29 @@ class RelojModel
     /* Obtener por ID */
   public function get($id)
 {
-    $vSql = "SELECT r.*,
-                    rv.id_reloj_vendedor,
-                    u.id_usuario,
-                    u.nombre,
-                    u.apellido
+    $vSql = "SELECT 
+                r.id_reloj,
+                r.modelo,
+                r.descripcion,
+                r.imagen,
+                r.anio_fabricacion,
+                r.precio_estimado,
+                r.fecha_registro,
+                m.nombre AS marca,
+                c.nombre AS condicion,
+                e.nombre AS estado,
+                u.id_usuario,
+                u.nombre,
+                u.apellido
             FROM reloj r
+            INNER JOIN marca m 
+                ON r.id_marca = m.id_marca
+            INNER JOIN condicion c 
+                ON r.id_condicion = c.id_condicion
             LEFT JOIN reloj_vendedor rv 
-                ON r.id_reloj = rv.id_reloj
+                ON rv.id_reloj = r.id_reloj
+            LEFT JOIN estado_reloj_vendedor e 
+                ON rv.id_estado_reloj_vendedor = e.id_estado_reloj_vendedor
             LEFT JOIN usuario u 
                 ON rv.id_usuario_vendedor = u.id_usuario
             WHERE r.id_reloj = $id;";
@@ -46,34 +61,16 @@ class RelojModel
 
     $reloj = $resultado[0];
 
-    // Valores por defecto
     $vendedor = null;
-    $historial = [];
 
-    // Si tiene vendedor
-    if ($reloj->id_reloj_vendedor != null) {
-
+    if ($reloj->id_usuario != null) {
         $vendedor = [
             "id_usuario" => $reloj->id_usuario,
             "nombre" => $reloj->nombre,
             "apellido" => $reloj->apellido
         ];
-
-        // Buscar historial
-        $vSqlHistorial = "SELECT 
-                                id_subasta,
-                                fecha_inicio,
-                                fecha_fin,
-                                precio_inicial,
-                                incremento_minimo,
-                                id_estado_subasta
-                          FROM subasta
-                          WHERE id_reloj_vendedor = $reloj->id_reloj_vendedor;";
-
-        $historial = $this->enlace->ExecuteSQL($vSqlHistorial) ?? [];
     }
 
-    // Construcción final SIEMPRE aquí
     $relojFinal = [
         "id_reloj" => $reloj->id_reloj,
         "modelo" => $reloj->modelo,
@@ -81,8 +78,11 @@ class RelojModel
         "imagen" => $reloj->imagen,
         "anio_fabricacion" => $reloj->anio_fabricacion,
         "precio_estimado" => $reloj->precio_estimado,
-        "vendedor" => $vendedor,
-        "historial_subastas" => $historial
+        "fecha_registro" => $reloj->fecha_registro,
+        "marca" => $reloj->marca,
+        "condicion" => $reloj->condicion,
+        "estado" => $reloj->estado,
+        "vendedor" => $vendedor
     ];
 
     return $relojFinal;
