@@ -17,14 +17,6 @@ export default function Footer() {
           
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 font-[Montserrat] text-sm font-semibold text-[#845b34]">
-          <a href="#" className="hover:text-[#e8a96e]">
-            Términos
-          </a>
-          <a href="#" className="hover:text-[#e8a96e]">
-            Privacidad
-          </a>
-        </div>
 
         <div className="font-[Montserrat] text-xs text-[#845b34]/70">
           © {new Date().getFullYear()} CrownTime Collective. Todos los derechos reservados.

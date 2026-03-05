@@ -130,4 +130,18 @@ class RelojModel
 
         return $this->enlace->ExecuteSQL($vSql);
     }
+
+    /*Metodo de buscar el reloj por marca*/
+    public function allByMarca($idMarca)
+    {
+        $vSql = "SELECT r.*, 
+                    m.nombre AS marca, 
+                    c.nombre AS condicion
+             FROM reloj r
+             INNER JOIN marca m ON r.id_marca = m.id_marca
+             INNER JOIN condicion c ON r.id_condicion = c.id_condicion
+             WHERE r.id_marca = $idMarca;";
+
+        return $this->enlace->ExecuteSQL($vSql);
+    }
 }

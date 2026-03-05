@@ -1,12 +1,4 @@
-import { apiFetch } from "./api";
-
-export function getRelojes() {
-  return apiFetch("reloj");
-}
-
-export function getRelojDetalle(id) {
-  return apiFetch(`reloj/${id}`);
-}
+const API_URL = import.meta.env.VITE_API_URL;
 
 export async function getRelojesPorMarca(idMarca) {
     let url = `${API_URL}/reloj`;
