@@ -27,23 +27,23 @@ export default function Header() {
 
           {catOpen && (
             <div className="absolute right-0 top-full mt-2 w-64 rounded-md border border-[#845b34]/20 bg-white shadow-lg overflow-hidden">
-              <Link
+              {/* <Link
                 to="/objetos"
                 className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
                 onClick={() => setCatOpen(false)}
               >
                 Ver todas las subastas
-              </Link>
+              </Link> */}
 
-              <div className="h-px bg-[#845b34]/10" />
+              {/* <div className="h-px bg-[#845b34]/10" /> */}
 
-              {/* Ejemplos de categorías (ajusta rutas a las tuyas) */}
+              
               <Link
                 to="/objetos?categoria=lujo"
                 className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
                 onClick={() => setCatOpen(false)}
               >
-                Relojes de lujo
+                Mantenimiento de Relojes
               </Link>
 
               <Link
@@ -51,24 +51,10 @@ export default function Header() {
                 className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
                 onClick={() => setCatOpen(false)}
               >
-                De colección
+                Mantenimiento de Usuarios
               </Link>
 
-              <Link
-                to="/objetos?categoria=usados"
-                className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
-                onClick={() => setCatOpen(false)}
-              >
-                Usados
-              </Link>
-
-              <Link
-                to="/objetos?categoria=nuevos"
-                className="block px-4 py-3 text-sm text-[#5b3717] hover:bg-[#e8a96e]/20"
-                onClick={() => setCatOpen(false)}
-              >
-                Nuevos
-              </Link>
+              
             </div>
           )}
         </div>
