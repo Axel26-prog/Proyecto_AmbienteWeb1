@@ -1,5 +1,5 @@
 <?php
-class puja
+class PujaController
 {
     public function index()
     {
@@ -39,24 +39,21 @@ class puja
         }
     }
 
-    public function getBySubasta($param)
-    {
-        try {
+       public function getBySubasta($idSubasta) {
+        $model = new PujaModel();
+        $pujas = $model->getBySubasta($idSubasta);
 
-            $response = new Response();
-
-            $model = new PujaModel();
-
-            $result = $model->getBySubasta($param);
-
-            $response->toJSON($result);
-
-        } catch (Exception $e) {
-
-            handleException($e);
-
+        
+        if (!$pujas) {
+            $pujas = [];
         }
+
+        echo json_encode([
+            "success" => true,
+            "data" => $pujas
+        ]);
     }
+
 
     public function getPujaMasAlta($param)
     {

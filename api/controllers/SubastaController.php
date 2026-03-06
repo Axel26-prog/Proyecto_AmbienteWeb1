@@ -118,4 +118,35 @@ class SubastaController
 
         }
     }
+
+    public function finalizadas()
+{
+    try {
+
+        $response = new Response();
+
+        $model = new SubastaModel();
+
+        $result = $model->getFinalizadas();
+
+        $response->toJSON($result);
+
+    } catch (Exception $e) {
+
+        handleException($e);
+
+    }
+}
+
+public function detalle($id)
+{
+    try {
+        $response = new Response();
+        $model = new SubastaModel();
+        $result = $model->getDetalleSubasta($id);
+        $response->toJSON($result);
+    } catch (Exception $e) {
+        handleException($e);
+    }
+}
 }
