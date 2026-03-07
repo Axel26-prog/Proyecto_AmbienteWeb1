@@ -13,9 +13,9 @@ const BRAND_KEY_TO_DBNAME = {
 };
 
 export function BrandProvider({ children }) {
-    const [activeBrand, setActiveBrand] = useState("rolex");
+    const [activeBrand, setActiveBrand] = useState("all");
 
-    const activeBrandName = BRAND_KEY_TO_DBNAME[activeBrand] ?? "Rolex";
+    const activeBrandName = BRAND_KEY_TO_DBNAME[activeBrand] ?? "Todos";
 
     const value = useMemo(
         () => ({

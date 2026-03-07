@@ -46,17 +46,7 @@ export default function HomePage() {
             Ver Subastas
           </Link>
 
-          <Link
-            to="/usuarios"
-            className="px-7 py-3 rounded-lg font-semibold shadow-lg transition hover:opacity-90"
-            style={{
-              backgroundColor: "#5b3717",
-              color: "#e8a96e",
-              fontFamily: "Montserrat",
-            }}
-          >
-            Iniciar Sesión
-          </Link>
+          
         </div>
       </div>
 
