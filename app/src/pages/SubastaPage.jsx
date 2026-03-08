@@ -3,22 +3,18 @@ import { getSubastasActivas, getSubastasFinalizadas } from "../services/SubastaS
 import BrandMenuBar from "../components/Layout/BrandMenuBar";
 import { useNavigate } from "react-router-dom";
 
-export default function SubastaPage() {
-
+export default function SubastaPage({ tipo = "activas" }) {
     const [subastas, setSubastas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
+    const mostrarFinalizadas = tipo === "inactivas";
     const navigate = useNavigate();
 
     useEffect(() => {
-
         let alive = true;
 
         const cargarSubastas = async () => {
-
             try {
-
                 setLoading(true);
                 setError("");
 
@@ -29,21 +25,13 @@ export default function SubastaPage() {
                 if (!alive) return;
 
                 const lista = Array.isArray(data) ? data : data?.data || [];
-
                 setSubastas(lista);
-
             } catch (e) {
-
                 if (!alive) return;
-
                 setError(e?.message || "Error al cargar subastas");
-
             } finally {
-
                 if (alive) setLoading(false);
-
             }
-
         };
 
         cargarSubastas();
@@ -51,45 +39,29 @@ export default function SubastaPage() {
         return () => {
             alive = false;
         };
-
     }, [mostrarFinalizadas]);
 
     return (
-
-        <div className="w-full bg-[#f7f7f7]">
-
+        <div className="bg-gray-100 min-h-screen font-[Montserrat]">
             <BrandMenuBar />
 
-            <div className="mx-auto w-full max-w-6xl px-4 py-8">
-
-                <div className="flex items-center justify-between mb-6">
-
-                    <h2 className="font-[Georgia] text-2xl font-bold text-[#5b3717]">
-                        {mostrarFinalizadas ? "Subastas Finalizadas" : "Subastas Activas"}
-                    </h2>
-
-                    <button
-                        onClick={() => setMostrarFinalizadas(!mostrarFinalizadas)}
-                        className="rounded-lg bg-[#845b34] px-4 py-2 text-white font-[Montserrat] text-sm hover:bg-[#6f4726]"
-                    >
-                        {mostrarFinalizadas
-                            ? "Ver subastas activas"
-                            : "Ver subastas finalizadas"}
-                    </button>
-
-                </div>
+            <div className="p-6">
+                <h2
+                    className="text-3xl font-bold mb-8 text-[#845b34]"
+                    style={{ fontFamily: "Georgia" }}
+                >
+                    {mostrarFinalizadas ? "Subastas Finalizadas" : "Subastas Activas"}
+                </h2>
 
                 {loading && (
-                    <p className="font-[Montserrat] text-sm font-semibold text-[#845b34]">
+                    <p className="mt-4 text-gray-600 text-base font-medium">
                         Cargando subastas...
                     </p>
                 )}
 
                 {!loading && error && (
                     <div className="rounded-lg border border-red-200 bg-white p-4">
-                        <p className="font-[Montserrat] text-sm text-red-600">
-                            {error}
-                        </p>
+                        <p className="font-[Montserrat] text-sm text-red-600">{error}</p>
                     </div>
                 )}
 
@@ -101,126 +73,122 @@ export default function SubastaPage() {
                     </div>
                 )}
 
-                <div className="mt-6 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
-
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {subastas.map((s) => {
-
                         const imgUrl = s.imagen
                             ? `${import.meta.env.VITE_API_URL}/uploads/${s.imagen}`
                             : null;
 
                         return (
+                            <div
+                                key={s.id_subasta}
+                                className="bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden"
+                            >
+                                {/* IMAGEN */}
+                                <div className="h-56 bg-white flex items-center justify-center overflow-hidden p-4">
+                                    {imgUrl ? (
+                                        <img
+                                            src={imgUrl}
+                                            alt={s.modelo}
+                                            className="max-h-full max-w-full object-contain"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = "none";
+                                            }}
+                                        />
+                                    ) : (
+                                        <span className="text-sm text-gray-400">Sin imagen</span>
+                                    )}
+                                </div>
 
-                            <article key={s.id_subasta} className="w-full">
-
-                                <div className="rounded-3xl border-2 border-[#845b34] bg-white p-7 shadow-sm">
-
-                                    <div className="flex h-64 items-center justify-center">
-
-                                        {imgUrl ? (
-                                            <img
-                                                src={imgUrl}
-                                                alt={s.modelo}
-                                                className="max-h-full max-w-full object-contain"
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = "none";
-                                                }}
-                                            />
-                                        ) : (
-                                            <span className="text-sm text-gray-400">
-                                                Sin imagen
-                                            </span>
-                                        )}
-
-                                    </div>
-
-                                    <h3 className="mt-4 text-center font-[Georgia] text-sm font-semibold text-[#5b3717]">
+                                {/* CONTENIDO */}
+                                <div className="p-5 text-gray-900">
+                                    <h3
+                                        className="text-xl font-bold mb-2 text-[#845b34]"
+                                        style={{ fontFamily: "Georgia" }}
+                                    >
                                         {s.modelo || "Reloj"}
                                     </h3>
 
-                                    <ul className="mt-3 space-y-1 text-left font-[Montserrat] text-xs text-[#5b3717]">
-
-                                        {mostrarFinalizadas ? (
-                                            <>
-                                                <li>
-                                                    <span className="font-semibold">Fecha cierre:</span>{" "}
+                                    {mostrarFinalizadas ? (
+                                        <>
+                                            <p className="text-base mb-1">
+                                                <strong style={{ fontFamily: "Georgia" }}>Fecha cierre:</strong>{" "}
+                                                <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                                                     {s.fecha_cierre
                                                         ? new Date(s.fecha_cierre).toLocaleDateString()
                                                         : "-"}
-                                                </li>
+                                                </span>
+                                            </p>
 
-                                                <li>
-                                                    <span className="font-semibold">Pujas:</span>{" "}
+                                            <p className="text-base mb-1">
+                                                <strong style={{ fontFamily: "Georgia" }}>Pujas:</strong>{" "}
+                                                <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                                                     {s.cantidad_pujas ?? 0}
-                                                </li>
+                                                </span>
+                                            </p>
 
-                                                <li>
-                                                    <span className="font-semibold">Estado:</span>{" "}
+                                            <p className="text-base mb-3">
+                                                <strong style={{ fontFamily: "Georgia" }}>Estado:</strong>{" "}
+                                                <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                                                     {s.estado_final || "Finalizada"}
-                                                </li>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <li>
-                                                    <span className="font-semibold">Inicio:</span>{" "}
+                                                </span>
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-base mb-1">
+                                                <strong style={{ fontFamily: "Georgia" }}>Inicio:</strong>{" "}
+                                                <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                                                     {s.fecha_inicio
                                                         ? new Date(s.fecha_inicio).toLocaleDateString()
                                                         : "-"}
-                                                </li>
+                                                </span>
+                                            </p>
 
-                                                <li>
-                                                    <span className="font-semibold">Cierre:</span>{" "}
+                                            <p className="text-base mb-1">
+                                                <strong style={{ fontFamily: "Georgia" }}>Cierre:</strong>{" "}
+                                                <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                                                     {s.fecha_estimada_cierre
                                                         ? new Date(s.fecha_estimada_cierre).toLocaleDateString()
                                                         : "-"}
-                                                </li>
+                                                </span>
+                                            </p>
 
-                                                <li>
-                                                    <span className="font-semibold">Precio base:</span>{" "}
+                                            <p className="text-base mb-1">
+                                                <strong style={{ fontFamily: "Georgia" }}>Precio base:</strong>{" "}
+                                                <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                                                     ${Number(s.precio_inicial || 0).toLocaleString()}
-                                                </li>
+                                                </span>
+                                            </p>
 
-                                                <li>
-                                                    <span className="font-semibold">Incremento mínimo:</span>{" "}
+                                            <p className="text-base mb-3">
+                                                <strong style={{ fontFamily: "Georgia" }}>Incremento mínimo:</strong>{" "}
+                                                <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                                                     ${Number(s.incremento_minimo || 0).toLocaleString()}
-                                                </li>
-                                            </>
-                                        )}
+                                                </span>
+                                            </p>
+                                        </>
+                                    )}
 
-                                    </ul>
-
-                                    <div className="mt-4">
-
-                                        <p className="font-[Montserrat] text-[11px] font-bold tracking-wide text-[#e8a96e]">
-                                            PUJAS
-                                        </p>
-
-                                        <p className="font-[Montserrat] text-sm font-semibold text-[#5b3717]">
+                                    <p className="text-base mb-3">
+                                        <strong style={{ fontFamily: "Georgia" }}>Pujas:</strong>{" "}
+                                        <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                                             {s.cantidad_pujas ?? 0}
-                                        </p>
+                                        </span>
+                                    </p>
 
-                                    </div>
-                                            <div className="mt-4 flex justify-center">
-                                                <button
-                                                 onClick={() => navigate(`/subasta/${s.id_subasta}`)}
-                                                 className="rounded-lg bg-[#845b34] px-4 py-2 text-white text-sm hover:bg-[#6f4726]"
-                                                >
-                                                   Ver detalle
-                                                </button>
-                                            </div>
+                                    <button
+                                        onClick={() => navigate(`/subasta/${s.id_subasta}`)}
+                                        className="w-full bg-[#845b34] text-[#e8a96e] py-3 rounded font-semibold hover:brightness-110 transition"
+                                    >
+                                        Ver Detalle
+                                    </button>
                                 </div>
-
-                            </article>
-
+                            </div>
                         );
-
                     })}
-
                 </div>
-
             </div>
-
         </div>
-
     );
 }

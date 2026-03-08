@@ -6,20 +6,19 @@ const MENU_OPTIONS = [
         key: "activas",
         title: "Subastas",
         subtitle: "Activas",
-        route: "/subastas/activas",
+        route: "/subastas",
     },
     {
         key: "inactivas",
         title: "Subastas",
-        subtitle: "Inactivas",
-        
-        route: "/subastas/inactivas",
+        subtitle: "Finalizadas",
+        route: "/subastas-inactivas",
     },
     {
         key: "objetos",
         title: "Ver",
         subtitle: "Todos",
-        route: "/subastas",
+        route: "/objetos",
     },
 
 ];

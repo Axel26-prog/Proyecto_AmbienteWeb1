@@ -25,6 +25,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="usuarios" element={<UsuariosPages />} />
             <Route path="objetos" element={<ObjetosPages />} /> 
             <Route path="subastas" element={<SubastaPage />} /> 
+            <Route path="subastas-inactivas" element={<SubastaPage tipo="inactivas" />} />
             <Route path="subasta/:id" element={<SubastaDetallePage />} />
           </Route>
         </Routes>

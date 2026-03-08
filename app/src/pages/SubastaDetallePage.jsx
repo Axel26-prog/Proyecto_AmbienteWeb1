@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getSubastaDetalle, getHistorialPujas } from "../services/SubastaServices";
 import BrandMenuBar from "../components/Layout/BrandMenuBar";
 
 export default function SubastaDetallePage() {
     const { id } = useParams();
+    const navigate = useNavigate();
+
     const [subasta, setSubasta] = useState(null);
     const [pujas, setPujas] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Función para parsear fechas de "YYYY-MM-DD HH:MM:SS" a Date válido
     const parseDate = (fechaString) => {
         if (!fechaString) return null;
         const date = new Date(fechaString.replace(" ", "T"));
@@ -39,85 +40,228 @@ export default function SubastaDetallePage() {
         cargar();
     }, [id]);
 
-    if (loading) return <p className="p-6 text-gray-800">Cargando...</p>;
-    if (!subasta) return <p className="p-6 text-gray-800">Subasta no encontrada</p>;
+    if (loading) {
+        return (
+            <div className="bg-gray-100 min-h-screen font-[Montserrat]">
+              
+                <div className="p-6">
+                    <p className="mt-4 text-gray-600 text-base font-medium">Cargando...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!subasta) {
+        return (
+            <div className="bg-gray-100 min-h-screen font-[Montserrat]">
+               
+                <div className="p-6">
+                    <p className="mt-4 text-gray-600 text-base font-medium">
+                        Subasta no encontrada
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     const imgUrl = subasta.imagen
         ? `${import.meta.env.VITE_API_URL}/uploads/${subasta.imagen}`
         : null;
 
     return (
-        <div className="w-full bg-[#f7f7f7] text-gray-800 min-h-screen">
-            <BrandMenuBar />
+        <div className="bg-gray-100 min-h-screen font-[Montserrat]">
+           
 
-            <div className="mx-auto max-w-5xl px-4 py-8">
-                <h2 className="text-2xl font-bold text-[#5b3717] mb-6">
-                    Detalle de Subasta
-                </h2>
+            <div className="p-6">
+                <div className="flex justify-between items-center mb-8">
+                    <h2
+                        className="text-3xl font-bold text-[#845b34]"
+                        style={{ fontFamily: "Georgia" }}
+                    >
+                        Detalle de Subasta
+                    </h2>
 
-                {/* INFORMACIÓN DEL OBJETO */}
-                <div className="bg-white rounded-xl p-6 border mb-6">
-                    <h3 className="font-bold mb-4 text-gray-800">Información del objeto</h3>
-
-                    <div className="flex h-64 items-center justify-center mb-4">
-                        {imgUrl ? (
-                            <img
-                                src={imgUrl}
-                                alt={subasta.modelo}
-                                className="max-h-full max-w-full object-contain"
-                                onError={(e) => {
-                                    console.error("No se pudo cargar la imagen:", imgUrl);
-                                    e.currentTarget.style.display = "none";
-                                }}
-                            />
-                        ) : (
-                            <span className="text-sm text-gray-400">Sin imagen</span>
-                        )}
-                    </div>
-
-                    <p><b>Nombre:</b> {subasta.modelo || "Sin nombre"}</p>
-                    <p><b>Descripción:</b> {subasta.descripcion || "-"}</p>
-                    <p><b>Marca:</b> {subasta.marca || "No disponible"}</p>
-                    <p><b>Condición:</b> {subasta.condicion || "No disponible"}</p>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="px-4 py-2 bg-[#845b34] text-[#e8a96e] rounded font-semibold hover:brightness-110 transition"
+                    >
+                        ← Volver
+                    </button>
                 </div>
 
-                {/* DATOS DE LA SUBASTA */}
-                <div className="bg-white rounded-xl p-6 border mb-6">
-                    <h3 className="font-bold mb-4 text-gray-800">Datos de la Subasta</h3>
+                <div className="grid gap-6 lg:grid-cols-2">
+                    {/* INFORMACIÓN DEL OBJETO */}
+                    <div className="bg-white rounded-lg shadow p-6 text-[#1f1f1f]">
+                        <h3
+                            className="text-2xl font-bold mb-4 text-[#845b34]"
+                            style={{ fontFamily: "Georgia" }}
+                        >
+                            Información del objeto
+                        </h3>
 
-                    <p><b>Fecha inicio:</b> {parseDate(subasta.fecha_inicio)?.toLocaleString() || "No disponible"}</p>
-                    <p><b>Fecha cierre:</b> {parseDate(subasta.fecha_fin)?.toLocaleString() || "No disponible"}</p>
-                    <p><b>Precio base:</b> ${Number(subasta.precio_inicial || 0).toLocaleString()}</p>
-                    <p><b>Incremento mínimo:</b> ${Number(subasta.incremento_minimo || 0).toLocaleString()}</p>
-                    <p><b>Estado:</b> {subasta.estado || "No disponible"}</p>
-                    <p><b>Cantidad de pujas:</b> {Number(subasta.total_pujas || 0)}</p>
+                        <div className="h-80 bg-white flex items-center justify-center overflow-hidden p-4 mb-6 rounded">
+                            {imgUrl ? (
+                                <img
+                                    src={imgUrl}
+                                    alt={subasta.modelo}
+                                    className="max-h-full max-w-full object-contain"
+                                    onError={(e) => {
+                                        console.error("No se pudo cargar la imagen:", imgUrl);
+                                        e.currentTarget.style.display = "none";
+                                    }}
+                                />
+                            ) : (
+                                <span className="text-sm text-gray-400">Sin imagen</span>
+                            )}
+                        </div>
+
+                        <p className="mb-3">
+                            <strong style={{ fontFamily: "Georgia" }}>Nombre:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif", color: "#1f1f1f" }}>
+                                {subasta.modelo || "Sin nombre"}
+                            </span>
+                        </p>
+
+                        <p className="mb-3">
+                            <strong style={{ fontFamily: "Georgia" }}>Descripción:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif", color: "#1f1f1f"  }}>
+                                {subasta.descripcion || "-"}
+                            </span>
+                        </p>
+
+                        <p className="mb-3">
+                            <strong style={{ fontFamily: "Georgia" }}>Marca:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif", color: "#1f1f1f"  }}>
+                                {subasta.marca || "No disponible"}
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong style={{ fontFamily: "Georgia" }}>Condición:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif", color: "#1f1f1f"  }}>
+                                {subasta.condicion || "No disponible"}
+                            </span>
+                        </p>
+                    </div>
+
+                    {/* DATOS DE LA SUBASTA */}
+                    <div className="bg-white rounded-lg shadow p-6 text-[#1f1f1f]">
+                        <h3
+                            className="text-2xl font-bold mb-4 text-[#845b34]"
+                            style={{ fontFamily: "Georgia" }}
+                        >
+                            Datos de la Subasta
+                        </h3>
+
+                        <p className="mb-3">
+                            <strong style={{ fontFamily: "Georgia" }}>Fecha inicio:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif", color: "#1f1f1f"  }}>
+                                {parseDate(subasta.fecha_inicio)?.toLocaleString() || "No disponible"}
+                            </span>
+                        </p>
+
+                        <p className="mb-3">
+                            <strong style={{ fontFamily: "Georgia" }}>Fecha cierre:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif", color: "#1f1f1f"  }}>
+                                {parseDate(subasta.fecha_fin)?.toLocaleString() || "No disponible"}
+                            </span>
+                        </p>
+
+                        <p className="mb-3">
+                            <strong style={{ fontFamily: "Georgia" }}>Precio base:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif", color: "#1f1f1f"  }}>
+                                ${Number(subasta.precio_inicial || 0).toLocaleString()}
+                            </span>
+                        </p>
+
+                        <p className="mb-3">
+                            <strong style={{ fontFamily: "Georgia" }}>Incremento mínimo:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif" , color: "#1f1f1f" }}>
+                                ${Number(subasta.incremento_minimo || 0).toLocaleString()}
+                            </span>
+                        </p>
+
+                        <p className="mb-3">
+                            <strong style={{ fontFamily: "Georgia" }}>Estado:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif" , color: "#1f1f1f" }}>
+                                {subasta.estado || "No disponible"}
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong style={{ fontFamily: "Georgia" }}>Cantidad de pujas:</strong>{" "}
+                            <span style={{ fontFamily: "Montserrat, sans-serif", color: "#1f1f1f"  }}>
+                                {Number(subasta.total_pujas || 0)}
+                            </span>
+                        </p>
+                    </div>
                 </div>
 
                 {/* HISTORIAL DE PUJAS */}
-                <div className="bg-white rounded-xl p-6 border">
-                    <h3 className="font-bold mb-4 text-gray-800">Historial de Pujas (orden descendente)</h3>
+                <div className="mt-8 bg-white rounded-lg shadow p-6 overflow-x-auto text-[#1f1f1f]">
+                    <h3
+                        className="text-2xl font-bold mb-4 text-[#845b34]"
+                        style={{ fontFamily: "Georgia" }}
+                    >
+                        Historial de Pujas
+                    </h3>
 
-                    <table className="w-full text-sm text-gray-800">
+                    <table className="w-full text-base text-left">
                         <thead>
-                            <tr className="border-b">
-                                <th className="text-left">Usuario</th>
-                                <th className="text-left">Monto</th>
-                                <th className="text-left">Fecha</th>
+                            <tr className="border-b border-gray-200">
+                                <th
+                                    className="py-3 pr-4 text-[#845b34]"
+                                    style={{ fontFamily: "Georgia" }}
+                                >
+                                    Usuario
+                                </th>
+                                <th
+                                    className="py-3 pr-4 text-[#845b34]"
+                                    style={{ fontFamily: "Georgia" }}
+                                >
+                                    Monto
+                                </th>
+                                <th
+                                    className="py-3 pr-4 text-[#845b34]"
+                                    style={{ fontFamily: "Georgia" }}
+                                >
+                                    Fecha
+                                </th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {pujas.length === 0 ? (
                                 <tr>
-                                    <td colSpan={3} className="text-center text-gray-500 py-4">
+                                    <td
+                                        colSpan={3}
+                                        className="py-4 text-center text-gray-500"
+                                        style={{ fontFamily: "Montserrat, sans-serif" }}
+                                    >
                                         No hay pujas aún
                                     </td>
                                 </tr>
                             ) : (
                                 pujas.map((p) => (
-                                    <tr key={p.id_puja} className="border-b">
-                                        <td>{p.usuario || "Desconocido"}</td>
-                                        <td>${Number(p.monto || 0).toLocaleString()}</td>
-                                        <td>{parseDate(p.fecha_puja)?.toLocaleString() || "No disponible"}</td>
+                                    <tr key={p.id_puja} className="border-b border-gray-100">
+                                        <td
+                                            className="py-3 pr-4"
+                                            style={{ fontFamily: "Montserrat, sans-serif" }}
+                                        >
+                                            {p.usuario || "Desconocido"}
+                                        </td>
+                                        <td
+                                            className="py-3 pr-4"
+                                            style={{ fontFamily: "Montserrat, sans-serif" }}
+                                        >
+                                            ${Number(p.monto || 0).toLocaleString()}
+                                        </td>
+                                        <td
+                                            className="py-3 pr-4"
+                                            style={{ fontFamily: "Montserrat, sans-serif" }}
+                                        >
+                                            {parseDate(p.fecha_puja)?.toLocaleString() || "No disponible"}
+                                        </td>
                                     </tr>
                                 ))
                             )}
@@ -127,4 +271,4 @@ export default function SubastaDetallePage() {
             </div>
         </div>
     );
-}   
+}
