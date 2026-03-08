@@ -11,21 +11,26 @@ class SubastaModel
     /* Listar todas las subastas */
     public function all()
     {
-        $vSql = "SELECT s.id_subasta,
-                        s.fecha_inicio,
-                        s.fecha_fin,
-                        s.precio_inicial,
-                        s.incremento_minimo,
-                        rv.id_reloj_vendedor,
-                        r.modelo,
-                        es.nombre AS estado
-                 FROM subasta s
-                 INNER JOIN reloj_vendedor rv
+        $vSql = "SELECT 
+                    s.id_subasta,
+                    s.fecha_inicio,
+                    s.fecha_fin,
+                    s.precio_inicial,
+                    s.incremento_minimo,
+                    r.modelo,
+                    r.imagen,
+                    es.nombre AS estado,
+                    COUNT(p.id_puja) AS cantidad_pujas
+                FROM subasta s
+                INNER JOIN reloj_vendedor rv
                     ON s.id_reloj_vendedor = rv.id_reloj_vendedor
-                 INNER JOIN reloj r
+                INNER JOIN reloj r
                     ON rv.id_reloj = r.id_reloj
-                 INNER JOIN estado_subasta es
-                    ON s.id_estado_subasta = es.id_estado_subasta;";
+                INNER JOIN estado_subasta es
+                    ON s.id_estado_subasta = es.id_estado_subasta
+                LEFT JOIN puja p
+                    ON p.id_subasta = s.id_subasta
+                GROUP BY s.id_subasta;";
 
         return $this->enlace->ExecuteSQL($vSql);
     }
@@ -33,26 +38,38 @@ class SubastaModel
     /* Obtener subasta por ID */
     public function get($id)
     {
-        $vSql = "SELECT s.id_subasta,
-                        s.fecha_inicio,
-                        s.fecha_fin,
-                        s.precio_inicial,
-                        s.incremento_minimo,
-                        rv.id_reloj_vendedor,
-                        r.modelo,
-                        es.nombre AS estado
-                 FROM subasta s
-                 INNER JOIN reloj_vendedor rv
-                    ON s.id_reloj_vendedor = rv.id_reloj_vendedor
-                 INNER JOIN reloj r
-                    ON rv.id_reloj = r.id_reloj
-                 INNER JOIN estado_subasta es
-                    ON s.id_estado_subasta = es.id_estado_subasta
-                 WHERE s.id_subasta=$id;";
+          $vSql = "SELECT 
+                s.id_subasta,
+                r.modelo,
+                r.descripcion,
+                r.imagen,
+                m.nombre AS marca,
+                c.nombre AS condicion,
+                s.fecha_inicio,
+                s.fecha_fin,
+                s.precio_inicial,
+                s.incremento_minimo,
+                es.nombre AS estado,
+                COUNT(p.id_puja) AS total_pujas
+            FROM subasta s
+            INNER JOIN reloj_vendedor rv
+                ON s.id_reloj_vendedor = rv.id_reloj_vendedor   
+            INNER JOIN reloj r
+                ON rv.id_reloj = r.id_reloj
+            INNER JOIN marca m
+                ON r.id_marca = m.id_marca
+            INNER JOIN condicion c
+                ON r.id_condicion = c.id_condicion
+            INNER JOIN estado_subasta es
+                ON s.id_estado_subasta = es.id_estado_subasta
+            LEFT JOIN puja p
+                ON p.id_subasta = s.id_subasta
+            WHERE s.id_subasta=$id
+            GROUP BY s.id_subasta, r.modelo, r.descripcion, r.imagen, m.nombre, c.nombre, s.fecha_inicio, s.fecha_fin, s.precio_inicial, s.incremento_minimo, es.nombre;";
 
-        $vResultado = $this->enlace->ExecuteSQL($vSql);
+    $vResultado = $this->enlace->ExecuteSQL($vSql);
 
-        return $vResultado[0];
+    return $vResultado[0];
     }
 
     /* Crear subasta */
@@ -105,20 +122,102 @@ class SubastaModel
     }
 
     /* Obtener subastas activas */
-    public function getActivas()
-    {
-        $vSql = "SELECT s.*,
-                        r.modelo,
-                        es.nombre AS estado
-                 FROM subasta s
-                 INNER JOIN reloj_vendedor rv
-                    ON s.id_reloj_vendedor = rv.id_reloj_vendedor
-                 INNER JOIN reloj r
-                    ON rv.id_reloj = r.id_reloj
-                 INNER JOIN estado_subasta es
-                    ON s.id_estado_subasta = es.id_estado_subasta
-                 WHERE es.nombre='activa';";
+   public function getActivas()
+{
+    $this->cerrarSubastasVencidas();
 
-        return $this->enlace->ExecuteSQL($vSql);
+    $vSql = "SELECT 
+                s.id_subasta,
+                r.modelo,
+                r.imagen,
+                s.fecha_inicio,
+                s.fecha_fin AS fecha_estimada_cierre,
+                s.precio_inicial,
+                s.incremento_minimo,
+                COUNT(p.id_puja) AS cantidad_pujas
+            FROM subasta s
+            INNER JOIN reloj_vendedor rv
+                ON s.id_reloj_vendedor = rv.id_reloj_vendedor
+            INNER JOIN reloj r
+                ON rv.id_reloj = r.id_reloj
+            INNER JOIN estado_subasta es
+                ON s.id_estado_subasta = es.id_estado_subasta
+            LEFT JOIN puja p
+                ON p.id_subasta = s.id_subasta
+            WHERE es.nombre = 'activa'
+            GROUP BY s.id_subasta
+            ORDER BY s.fecha_fin ASC;";
+
+    return $this->enlace->ExecuteSQL($vSql);
+}
+    /* Obtener subastas finalizadas */
+   public function getFinalizadas()
+{
+    $vSql = "SELECT 
+                s.id_subasta,
+                r.modelo,
+                r.imagen,
+                s.fecha_fin AS fecha_cierre,
+                es.nombre AS estado_final,
+                COUNT(p.id_puja) AS cantidad_pujas
+            FROM subasta s
+            INNER JOIN reloj_vendedor rv
+                ON s.id_reloj_vendedor = rv.id_reloj_vendedor
+            INNER JOIN reloj r
+                ON rv.id_reloj = r.id_reloj
+            INNER JOIN estado_subasta es
+                ON s.id_estado_subasta = es.id_estado_subasta
+            LEFT JOIN puja p
+                ON p.id_subasta = s.id_subasta
+            WHERE es.nombre IN ('cerrada','cancelada')
+            GROUP BY 
+                s.id_subasta,
+                r.modelo,
+                r.imagen,
+                s.fecha_fin,
+                es.nombre";
+
+    return $this->enlace->ExecuteSQL($vSql);
+}
+
+    /* Obtener detalle completo de una subasta */
+    public function getDetalleSubasta($id)
+    {
+        $vSql = "SELECT 
+                    s.id_subasta,
+                    r.modelo,
+                    r.descripcion,
+                    r.imagen,
+                    s.fecha_inicio,
+                    s.fecha_fin,
+                    s.precio_inicial,
+                    s.incremento_minimo,
+                    es.nombre AS estado,
+                    COUNT(p.id_puja) AS total_pujas
+                FROM subasta s
+                INNER JOIN reloj_vendedor rv
+                    ON s.id_reloj_vendedor = rv.id_reloj_vendedor   
+                INNER JOIN reloj r
+                    ON rv.id_reloj = r.id_reloj
+                INNER JOIN estado_subasta es
+                    ON s.id_estado_subasta = es.id_estado_subasta
+                LEFT JOIN puja p
+                    ON p.id_subasta = s.id_subasta
+                WHERE s.id_subasta=$id
+                GROUP BY s.id_subasta;";
+
+        $vResultado = $this->enlace->ExecuteSQL($vSql);
+
+        return $vResultado[0];
     }
+
+public function cerrarSubastasVencidas()
+{
+    $vSql = "UPDATE subasta
+            SET id_estado_subasta = 2
+            WHERE fecha_fin <= NOW()
+            AND id_estado_subasta = 1;";
+
+    return $this->enlace->executeSQL_DML($vSql);
+}
 }
