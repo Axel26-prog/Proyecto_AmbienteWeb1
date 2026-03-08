@@ -260,7 +260,7 @@ export default function SubastaDetallePage() {
                                             className="py-3 pr-4"
                                             style={{ fontFamily: "Montserrat, sans-serif" }}
                                         >
-                                            {parseDate(p.fecha_puja)?.toLocaleString() || "No disponible"}
+                                           {parseDate(p.fecha_hora)?.toLocaleString() || "No disponible"}
                                         </td>
                                     </tr>
                                 ))
