@@ -24,9 +24,9 @@ class RelojModel
     }
 
     /* Obtener por ID */
-  public function get($id)
-{
-    $vSql = "SELECT 
+    public function get($id)
+    {
+        $vSql = "SELECT 
                 r.id_reloj,
                 r.modelo,
                 r.descripcion,
@@ -53,51 +53,52 @@ class RelojModel
                 ON rv.id_usuario_vendedor = u.id_usuario
             WHERE r.id_reloj = $id;";
 
-    $resultado = $this->enlace->ExecuteSQL($vSql);
+        $resultado = $this->enlace->ExecuteSQL($vSql);
 
-    if (empty($resultado)) {
-        return null;
-    }
+        if (empty($resultado)) {
+            return null;
+        }
 
-    $reloj = $resultado[0];
+        $reloj = $resultado[0];
 
-    $vendedor = null;
+        $vendedor = null;
 
-    if ($reloj->id_usuario != null) {
-        $vendedor = [
-            "id_usuario" => $reloj->id_usuario,
-            "nombre" => $reloj->nombre,
-            "apellido" => $reloj->apellido
+        if ($reloj->id_usuario != null) {
+            $vendedor = [
+                "id_usuario" => $reloj->id_usuario,
+                "nombre" => $reloj->nombre,
+                "apellido" => $reloj->apellido
+            ];
+        }
+
+        $relojFinal = [
+            "id_reloj" => $reloj->id_reloj,
+            "modelo" => $reloj->modelo,
+            "descripcion" => $reloj->descripcion,
+            "imagen" => $reloj->imagen,
+            "anio_fabricacion" => $reloj->anio_fabricacion,
+            "precio_estimado" => $reloj->precio_estimado,
+            "fecha_registro" => $reloj->fecha_registro,
+            "marca" => $reloj->marca,
+            "condicion" => $reloj->condicion,
+            "estado" => $reloj->estado,
+            "vendedor" => $vendedor
         ];
+
+        return $relojFinal;
     }
-
-    $relojFinal = [
-        "id_reloj" => $reloj->id_reloj,
-        "modelo" => $reloj->modelo,
-        "descripcion" => $reloj->descripcion,
-        "imagen" => $reloj->imagen,
-        "anio_fabricacion" => $reloj->anio_fabricacion,
-        "precio_estimado" => $reloj->precio_estimado,
-        "fecha_registro" => $reloj->fecha_registro,
-        "marca" => $reloj->marca,
-        "condicion" => $reloj->condicion,
-        "estado" => $reloj->estado,
-        "vendedor" => $vendedor
-    ];
-
-    return $relojFinal;
-}
 
     /* Crear */
     public function create($obj)
     {
+        $imagen = isset($obj->imagen) ? $obj->imagen : "";
         $vSql = "INSERT INTO reloj
                 (modelo, descripcion, imagen, anio_fabricacion, precio_estimado, id_marca, id_condicion)
                 VALUES
                 (
                     '$obj->modelo',
                     '$obj->descripcion',
-                    '$obj->imagen',
+                    '$imagen',
                     '$obj->anio_fabricacion',
                     '$obj->precio_estimado',
                     $obj->id_marca,
@@ -110,15 +111,18 @@ class RelojModel
     /* Actualizar */
     public function update($obj)
     {
+
+        $imagen = isset($obj->imagen) ? $obj->imagen : "";
+
         $vSql = "UPDATE reloj SET
                     modelo='$obj->modelo',
                     descripcion='$obj->descripcion',
-                    imagen='$obj->imagen',
+                    imagen='$imagen',
                     anio_fabricacion='$obj->anio_fabricacion',
                     precio_estimado='$obj->precio_estimado',
                     id_marca=$obj->id_marca,
                     id_condicion=$obj->id_condicion
-                 WHERE id_reloj=$obj->id_reloj;";
+                WHERE id_reloj=$obj->id_reloj;";
 
         return $this->enlace->ExecuteSQL($vSql);
     }
