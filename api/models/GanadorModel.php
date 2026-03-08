@@ -11,7 +11,7 @@ class GanadorModel
     /* Listar todos los ganadores */
     public function all()
     {
-        // Consulta SQL con información adicional del usuario y subasta
+        
         $vSql = "SELECT 
                     g.id_ganador,
                     g.monto_final,

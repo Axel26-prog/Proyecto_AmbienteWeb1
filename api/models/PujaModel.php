@@ -66,7 +66,7 @@ class PujaModel
         return $this->enlace->ExecuteSQL($vSql);
     }
 
-    /* Contar cantidad de pujas de una subasta (campo calculado) */
+    
     public function countBySubasta($idSubasta)
     {
         $vSql = "SELECT COUNT(*) AS cantidad_pujas
