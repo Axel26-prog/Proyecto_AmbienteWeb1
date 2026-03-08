@@ -71,6 +71,50 @@ class RelojModel
             ];
         }
 
+        // CONSULTA DEL HISTORIAL DE SUBASTAS DEL RELOJ
+        $vSqlHistorial = "SELECT 
+                        s.id_subasta,
+                        s.fecha_inicio,
+                        s.fecha_fin,
+                        s.precio_inicial,
+                        s.incremento_minimo,
+                        es.nombre AS estado_subasta,
+                        COUNT(p.id_puja) AS cantidad_pujas
+                      FROM reloj_vendedor rv
+                      INNER JOIN subasta s
+                        ON s.id_reloj_vendedor = rv.id_reloj_vendedor
+                      INNER JOIN estado_subasta es
+                        ON s.id_estado_subasta = es.id_estado_subasta
+                      LEFT JOIN puja p
+                        ON p.id_subasta = s.id_subasta
+                      WHERE rv.id_reloj = $id
+                      GROUP BY 
+                        s.id_subasta,
+                        s.fecha_inicio,
+                        s.fecha_fin,
+                        s.precio_inicial,
+                        s.incremento_minimo,
+                        es.nombre
+                      ORDER BY s.fecha_inicio DESC;";
+
+        $historial = $this->enlace->ExecuteSQL($vSqlHistorial);
+
+        $historialSubastas = [];
+
+        if (is_array($historial) && !empty($historial)) {
+            foreach ($historial as $sub) {
+                $historialSubastas[] = [
+                    "id_subasta" => $sub->id_subasta,
+                    "fecha_inicio" => $sub->fecha_inicio,
+                    "fecha_fin" => $sub->fecha_fin,
+                    "precio_inicial" => $sub->precio_inicial,
+                    "incremento_minimo" => $sub->incremento_minimo,
+                    "estado_subasta" => $sub->estado_subasta,
+                    "cantidad_pujas" => $sub->cantidad_pujas
+                ];
+            }
+        }
+
         $relojFinal = [
             "id_reloj" => $reloj->id_reloj,
             "modelo" => $reloj->modelo,
@@ -82,7 +126,8 @@ class RelojModel
             "marca" => $reloj->marca,
             "condicion" => $reloj->condicion,
             "estado" => $reloj->estado,
-            "vendedor" => $vendedor
+            "vendedor" => $vendedor,
+            "historial_subastas" => $historialSubastas
         ];
 
         return $relojFinal;

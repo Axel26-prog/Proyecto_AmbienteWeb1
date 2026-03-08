@@ -16,8 +16,8 @@ const MENU_OPTIONS = [
     },
     {
         key: "objetos",
-        title: "Ver",
-        subtitle: "Todos",
+        title: "Objetos",
+        subtitle: "Subastables",
         route: "/objetos",
     },
 
