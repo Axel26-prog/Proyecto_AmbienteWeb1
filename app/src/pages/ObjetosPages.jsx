@@ -2,39 +2,42 @@ import { useEffect, useState, useRef } from "react";
 import { getRelojes, getRelojDetalle } from "@/services/ObjetoServices";
 import BrandMenuBar from "../components/Layout/BrandMenuBar";
 
+//se importan los hooks useEffect y useState para el manejo del estado de la pagina
 export default function ObjetosPage() {
   const [relojes, setRelojes] = useState([]);
   const [detalle, setDetalle] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); //indica si está cargando la informacion
   const detalleRef = useRef(null);
 
-  const relojRefs = useRef({});
-  const [relojSeleccionado, setRelojSeleccionado] = useState(null);
+  const relojRefs = useRef({}); //guarda la referencia del elemento y hace scroll
+  const [relojSeleccionado, setRelojSeleccionado] = useState(null); //id del reloj que el usuario selecciono
 
   useEffect(() => {
     cargarRelojes();
   }, []);
 
+  //llama al servicio de getRelojes
   const cargarRelojes = async () => {
     try {
-      const data = await getRelojes();
+      const data = await getRelojes(); 
       console.log("Respuesta API:", data);
-      setRelojes(data);
+      setRelojes(data); //guarda la lista de relojes
     } catch (error) {
       console.error("Error cargando relojes", error);
       setRelojes([]);
     }
   };
 
+  //llama al servicio getRelojDetalle
   const verDetalle = async (id) => {
     if (!id) return;
 
     try {
       setLoading(true);
-      setRelojSeleccionado(id);
+      setRelojSeleccionado(id);//id seleccionado que se guarda
 
       const data = await getRelojDetalle(id);
-      setDetalle(data);
+      setDetalle(data); //información completa del reloj seleccionado
 
       setTimeout(() => {
         detalleRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -46,6 +49,7 @@ export default function ObjetosPage() {
     }
   };
 
+  //accion de volver, hace el scroll hacia la tarjeta seleccionada
   const volverAlReloj = () => {
     if (relojSeleccionado && relojRefs.current[relojSeleccionado]) {
       relojRefs.current[relojSeleccionado].scrollIntoView({
@@ -198,6 +202,7 @@ export default function ObjetosPage() {
               </span>
             </p>
 
+            {/* historial  se obtiene del RelojModel*/}
             {detalle.historial_subastas?.length > 0 ? (
               <div className="mt-4">
                 <h3
@@ -211,7 +216,7 @@ export default function ObjetosPage() {
                   {detalle.historial_subastas.map((sub) => (
                     <li key={sub.id_subasta}>
                       Subasta #{sub.id_subasta} | Inicio: {sub.fecha_inicio} |
-                      Fin: {sub.fecha_fin} | Precio Inicial: ${sub.precio_inicial}
+                      Fin: {sub.fecha_fin} | Estado: {sub.estado_subasta}
                     </li>
                   ))}
                 </ul>

@@ -1,30 +1,34 @@
 import { useEffect, useState } from "react";
 import { getUsuarios, getUsuarioDetalle } from "@/services/UsuarioServices";
 
+//se importan los hooks useEffect y useState para el manejo del estado de la pagina
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState([]);
   const [detalle, setDetalle] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); //indica si está cargando la informacion
+
 
   useEffect(() => {
     cargarUsuarios();
   }, []);
 
+  //llama al servicio getUsuarios
   const cargarUsuarios = async () => {
     try {
       const data = await getUsuarios();
-      setUsuarios(data);
+      setUsuarios(data); //guarda la lista usuarios 
     } catch (error) {
       console.error("Error cargando usuarios", error);
     }
   };
 
+  //llama al servicio getUsuarioDetalle
   const verDetalle = async (id) => {
     if (!id) return;
     try {
       setLoading(true);
       const data = await getUsuarioDetalle(id);
-      setDetalle(data);
+      setDetalle(data); //guarda los detalles del usuario seleccionada, incluyendo la cantidad de pujas y subastas
     } catch (error) {
       console.error("Error cargando detalle", error);
     } finally {
@@ -59,8 +63,8 @@ export default function UsuariosPage() {
             {usuarios.map((usuario) => (
               <tr key={usuario.id_usuario} className="border-t border-[#845b34]/20">
                 <td className="p-3">{usuario.nombre} {usuario.apellido}</td>
-                <td className="p-3">{usuario.rol}</td>
-                <td className="p-3">{usuario.estado}</td>
+                <td className="p-3">{usuario.rol}</td>  {/* Inner Join para traer el nombre del rol */}
+                <td className="p-3">{usuario.estado}</td> {/* Inner Join para traer el nombre del estado */}
 
                 <td className="p-3">
                   <button
@@ -95,10 +99,12 @@ export default function UsuariosPage() {
           <p><strong>Fecha Registro:</strong> {new Date(detalle.fecha_registro).toLocaleString()}</p>
 
           {detalle.rol === "Vendedor" && (
+            //se calcula los datos en el UsuarioModel
             <p><strong>Cantidad de Subastas:</strong> {detalle.cantidad_subastas}</p>
           )}
 
           {detalle.rol === "Cliente" && (
+            //se calcula los datos en el UsuarioModel
             <p><strong>Cantidad de Pujas:</strong> {detalle.cantidad_pujas}</p>
           )}
         </div>
