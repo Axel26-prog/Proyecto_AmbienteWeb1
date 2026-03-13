@@ -19,7 +19,7 @@ export default function ObjetosPage() {
   //llama al servicio de getRelojes
   const cargarRelojes = async () => {
     try {
-      const data = await getRelojes(); 
+      const data = await getRelojes();
       console.log("Respuesta API:", data);
       setRelojes(data); //guarda la lista de relojes
     } catch (error) {
@@ -34,7 +34,7 @@ export default function ObjetosPage() {
 
     try {
       setLoading(true);
-      setRelojSeleccionado(id);//id seleccionado que se guarda
+      setRelojSeleccionado(id); //id seleccionado que se guarda
 
       const data = await getRelojDetalle(id);
       setDetalle(data); //información completa del reloj seleccionado
@@ -58,6 +58,11 @@ export default function ObjetosPage() {
       });
     }
   };
+  const categorias = Array.isArray(detalle?.categorias)
+    ? detalle.categorias
+    : typeof detalle?.categorias === "string"
+      ? detalle.categorias.split(", ")
+      : [];
 
   return (
     <div className="bg-gray-100 min-h-screen font-[Montserrat]">
@@ -171,6 +176,21 @@ export default function ObjetosPage() {
                 {detalle.marca}
               </span>
             </p>
+            {categorias.length > 0 && (
+              <div className="mb-2">
+                <strong style={{ fontFamily: "Georgia" }}>Categorías:</strong>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {categorias.map((cat, index) => (
+                    <span
+                      key={index}
+                      className="text-xs px-3 py-1 rounded bg-[#845b34]/10 text-[#845b34] font-semibold"
+                    >
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <p className="mb-1">
               <strong style={{ fontFamily: "Georgia" }}>Condición:</strong>{" "}
@@ -187,7 +207,9 @@ export default function ObjetosPage() {
             </p>
 
             <p className="mb-3">
-              <strong style={{ fontFamily: "Georgia" }}>Fecha de registro:</strong>{" "}
+              <strong style={{ fontFamily: "Georgia" }}>
+                Fecha de registro:
+              </strong>{" "}
               <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                 {detalle.fecha_registro}
               </span>
