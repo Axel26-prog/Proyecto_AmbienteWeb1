@@ -10,18 +10,27 @@ class RelojModel
 
     /* Listar todos */
     public function all()
-    {
-        $vSql = "SELECT r.*, 
-                        m.nombre AS marca, 
-                        c.nombre AS condicion
-                 FROM reloj r
-                 INNER JOIN marca m ON r.id_marca = m.id_marca
-                 INNER JOIN condicion c ON r.id_condicion = c.id_condicion;";
+{
+    $vSql = "SELECT 
+                r.*,
+                m.nombre AS marca,
+                c.nombre AS condicion,
+                GROUP_CONCAT(cat.nombre SEPARATOR ', ') AS categorias
+            FROM reloj r
+            INNER JOIN marca m 
+                ON r.id_marca = m.id_marca
+            INNER JOIN condicion c 
+                ON r.id_condicion = c.id_condicion
+            LEFT JOIN reloj_categoria rc
+                ON r.id_reloj = rc.id_reloj
+            LEFT JOIN categoria cat
+                ON rc.id_categoria = cat.id_categoria
+            GROUP BY r.id_reloj;";
 
-        $vResultado = $this->enlace->ExecuteSQL($vSql);
+    $vResultado = $this->enlace->ExecuteSQL($vSql);
 
-        return $vResultado;
-    }
+    return $vResultado;
+}
 
     /* Obtener por ID */
     public function get($id)
@@ -52,6 +61,22 @@ class RelojModel
             LEFT JOIN usuario u 
                 ON rv.id_usuario_vendedor = u.id_usuario
             WHERE r.id_reloj = $id;";
+            $vSqlCategorias = "SELECT c.nombre
+                   FROM reloj_categoria rc
+                   INNER JOIN categoria c
+                   ON rc.id_categoria = c.id_categoria
+                   WHERE rc.id_reloj = $id;";
+
+$categorias = $this->enlace->ExecuteSQL($vSqlCategorias);
+
+$listaCategorias = [];
+
+if (!empty($categorias)) {
+    foreach ($categorias as $cat) {
+        $listaCategorias[] = $cat->nombre;
+    }
+}
+
 
         $resultado = $this->enlace->ExecuteSQL($vSql);
 
@@ -125,6 +150,7 @@ class RelojModel
             "fecha_registro" => $reloj->fecha_registro,
             "marca" => $reloj->marca,
             "condicion" => $reloj->condicion,
+            "categorias" => $listaCategorias,
             "estado" => $reloj->estado,
             "vendedor" => $vendedor,
             "historial_subastas" => $historialSubastas
@@ -182,15 +208,24 @@ class RelojModel
 
     /*Metodo de buscar el reloj por marca*/
     public function allByMarca($idMarca)
-    {
-        $vSql = "SELECT r.*, 
-                    m.nombre AS marca, 
-                    c.nombre AS condicion
-             FROM reloj r
-             INNER JOIN marca m ON r.id_marca = m.id_marca
-             INNER JOIN condicion c ON r.id_condicion = c.id_condicion
-             WHERE r.id_marca = $idMarca;";
+{
+    $vSql = "SELECT 
+                r.*,
+                m.nombre AS marca,
+                c.nombre AS condicion,
+                GROUP_CONCAT(cat.nombre SEPARATOR ', ') AS categorias
+            FROM reloj r
+            INNER JOIN marca m 
+                ON r.id_marca = m.id_marca
+            INNER JOIN condicion c 
+                ON r.id_condicion = c.id_condicion
+            LEFT JOIN reloj_categoria rc
+                ON r.id_reloj = rc.id_reloj
+            LEFT JOIN categoria cat
+                ON rc.id_categoria = cat.id_categoria
+            WHERE r.id_marca = $idMarca
+            GROUP BY r.id_reloj;";
 
-        return $this->enlace->ExecuteSQL($vSql);
-    }
+    return $this->enlace->ExecuteSQL($vSql);
+}
 }
