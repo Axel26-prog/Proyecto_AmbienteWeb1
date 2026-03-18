@@ -59,7 +59,7 @@ class RoutesController
         if (empty($routesArray[0])) {
             echo json_encode([
                 "success" => false,
-                "status"  => 404,
+                "status" => 404,
                 "message" => "Controlador no especificado"
             ], http_response_code(404));
             return;
@@ -67,9 +67,9 @@ class RoutesController
 
         // 🔥 Conversión automática a Controller
         $controllerName = ucfirst($routesArray[0]) . "Controller";
-        $action  = $routesArray[1] ?? null;
-        $param1  = $routesArray[2] ?? null;
-        $param2  = $routesArray[3] ?? null;
+        $action = $routesArray[1] ?? null;
+        $param1 = $routesArray[2] ?? null;
+        $param2 = $routesArray[3] ?? null;
 
         try {
 
@@ -118,7 +118,17 @@ class RoutesController
                     case 'PUT':
                     case 'PATCH':
 
-                        if ($action && is_numeric($action)) {
+                        if ($action && method_exists($controller, $action)) {
+
+                            if ($param1 && $param2) {
+                                $controller->$action($param1, $param2);
+                            } elseif ($param1) {
+                                $controller->$action($param1);
+                            } else {
+                                $controller->$action();
+                            }
+
+                        } elseif ($action && is_numeric($action)) {
                             $controller->update($action);
                         } else {
                             $controller->update();
@@ -150,7 +160,7 @@ class RoutesController
 
             echo json_encode([
                 "success" => false,
-                "status"  => 500,
+                "status" => 500,
                 "message" => $e->getMessage()
             ]);
         }

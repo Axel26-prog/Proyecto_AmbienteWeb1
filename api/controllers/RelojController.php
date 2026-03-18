@@ -29,15 +29,17 @@ class RelojController
     }
 
     public function create()
-    {
-        $request = json_decode(file_get_contents("php://input"));
+{
+    $request = json_decode(file_get_contents("php://input"));
 
-        $model = new RelojModel();
+    $model = new RelojModel();
 
-        $response = $model->create($request);
+    $request->id_usuario = 2;
 
-        echo json_encode($response);
-    }
+    $response = $model->create($request);
+
+    echo json_encode($response);
+}
 
     public function update()
     {
@@ -50,6 +52,7 @@ class RelojController
         echo json_encode($response);
     }
 
+
     public function delete($id)
     {
         $model = new RelojModel();
@@ -58,4 +61,13 @@ class RelojController
 
         echo json_encode($response);
     }
+
+    public function toggle($id)
+{
+    $model = new RelojModel();
+
+    $response = $model->cambiarEstado($id);
+
+    echo json_encode($response);
+}
 }

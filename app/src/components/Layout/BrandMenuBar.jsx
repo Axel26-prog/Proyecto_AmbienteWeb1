@@ -20,6 +20,12 @@ const MENU_OPTIONS = [
         subtitle: "Subastables",
         route: "/objetos",
     },
+    {
+        key: "admin-objetos",
+        title: "Administrar",
+        subtitle: "Objetos",
+        route: "/objetos-admin",
+    }
 
 ];
 

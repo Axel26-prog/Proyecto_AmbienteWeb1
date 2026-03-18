@@ -10,73 +10,72 @@ class RelojModel
 
     /* Listar todos */
     public function all()
-{
-    $vSql = "SELECT 
+    {
+        $vSql = "SELECT 
                 r.*,
+                er.nombre AS estado,
                 m.nombre AS marca,
                 c.nombre AS condicion,
+                erv.nombre AS estado_vendedor,
                 GROUP_CONCAT(cat.nombre SEPARATOR ', ') AS categorias
             FROM reloj r
+            INNER JOIN estado_reloj er
+                ON r.id_estado = er.id_estado
             INNER JOIN marca m 
                 ON r.id_marca = m.id_marca
             INNER JOIN condicion c 
                 ON r.id_condicion = c.id_condicion
+            LEFT JOIN reloj_vendedor rv
+                ON r.id_reloj = rv.id_reloj
+            LEFT JOIN estado_reloj_vendedor erv
+                ON rv.id_estado_reloj_vendedor = erv.id_estado_reloj_vendedor
             LEFT JOIN reloj_categoria rc
                 ON r.id_reloj = rc.id_reloj
             LEFT JOIN categoria cat
                 ON rc.id_categoria = cat.id_categoria
             GROUP BY r.id_reloj;";
 
-    $vResultado = $this->enlace->ExecuteSQL($vSql);
+        return $this->enlace->ExecuteSQL($vSql);
 
-    return $vResultado;
-}
+    }
 
     /* Obtener por ID */
     public function get($id)
     {
+        /* CONSULTA PRINCIPAL DEL RELOJ */
+
         $vSql = "SELECT 
-                r.id_reloj,
-                r.modelo,
-                r.descripcion,
-                r.imagen,
-                r.anio_fabricacion,
-                r.precio_estimado,
-                r.fecha_registro,
-                m.nombre AS marca,
-                c.nombre AS condicion,
-                e.nombre AS estado,
-                u.id_usuario,
-                u.nombre,
-                u.apellido
-            FROM reloj r
-            INNER JOIN marca m 
-                ON r.id_marca = m.id_marca
-            INNER JOIN condicion c 
-                ON r.id_condicion = c.id_condicion
-            LEFT JOIN reloj_vendedor rv 
-                ON rv.id_reloj = r.id_reloj
-            LEFT JOIN estado_reloj_vendedor e 
-                ON rv.id_estado_reloj_vendedor = e.id_estado_reloj_vendedor
-            LEFT JOIN usuario u 
-                ON rv.id_usuario_vendedor = u.id_usuario
-            WHERE r.id_reloj = $id;";
-            $vSqlCategorias = "SELECT c.nombre
-                   FROM reloj_categoria rc
-                   INNER JOIN categoria c
-                   ON rc.id_categoria = c.id_categoria
-                   WHERE rc.id_reloj = $id;";
+            r.id_reloj,
+            r.modelo,
+            r.descripcion,
+            r.imagen,
+            r.anio_fabricacion,
+            r.precio_estimado,
+            r.fecha_registro,
+            r.id_marca,
+            r.id_condicion,
+            m.nombre AS marca,
+            c.nombre AS condicion,
+            er.nombre AS estado,
+            erv.nombre AS estado_vendedor,
+            u.id_usuario,
+            u.nombre,
+            u.apellido
 
-$categorias = $this->enlace->ExecuteSQL($vSqlCategorias);
-
-$listaCategorias = [];
-
-if (!empty($categorias)) {
-    foreach ($categorias as $cat) {
-        $listaCategorias[] = $cat->nombre;
-    }
-}
-
+        FROM reloj r
+        INNER JOIN marca m 
+            ON r.id_marca = m.id_marca
+        INNER JOIN condicion c 
+            ON r.id_condicion = c.id_condicion
+        INNER JOIN estado_reloj er
+            ON r.id_estado = er.id_estado
+        LEFT JOIN reloj_vendedor rv 
+            ON rv.id_reloj = r.id_reloj
+        LEFT JOIN estado_reloj_vendedor erv 
+            ON rv.id_estado_reloj_vendedor = erv.id_estado_reloj_vendedor
+        LEFT JOIN usuario u 
+            ON rv.id_usuario_vendedor = u.id_usuario
+        WHERE r.id_reloj = $id";
 
         $resultado = $this->enlace->ExecuteSQL($vSql);
 
@@ -85,6 +84,26 @@ if (!empty($categorias)) {
         }
 
         $reloj = $resultado[0];
+
+        /* CONSULTA CATEGORIAS */
+
+        $vSqlCategorias = "SELECT c.id_categoria
+                       FROM reloj_categoria rc
+                       INNER JOIN categoria c
+                       ON rc.id_categoria = c.id_categoria
+                       WHERE rc.id_reloj = $id";
+
+        $categorias = $this->enlace->ExecuteSQL($vSqlCategorias);
+
+        $listaCategorias = [];
+
+        if (!empty($categorias)) {
+            foreach ($categorias as $cat) {
+                $listaCategorias[] = $cat->id_categoria;
+            }
+        }
+
+        /* INFORMACIÓN DEL VENDEDOR */
 
         $vendedor = null;
 
@@ -96,7 +115,8 @@ if (!empty($categorias)) {
             ];
         }
 
-        // CONSULTA DEL HISTORIAL DE SUBASTAS DEL RELOJ
+        /* HISTORIAL DE SUBASTAS */
+
         $vSqlHistorial = "SELECT 
                         s.id_subasta,
                         s.fecha_inicio,
@@ -120,7 +140,7 @@ if (!empty($categorias)) {
                         s.precio_inicial,
                         s.incremento_minimo,
                         es.nombre
-                      ORDER BY s.fecha_inicio DESC;";
+                      ORDER BY s.fecha_inicio DESC";
 
         $historial = $this->enlace->ExecuteSQL($vSqlHistorial);
 
@@ -140,6 +160,8 @@ if (!empty($categorias)) {
             }
         }
 
+        /* RESULTADO FINAL */
+
         $relojFinal = [
             "id_reloj" => $reloj->id_reloj,
             "modelo" => $reloj->modelo,
@@ -148,68 +170,191 @@ if (!empty($categorias)) {
             "anio_fabricacion" => $reloj->anio_fabricacion,
             "precio_estimado" => $reloj->precio_estimado,
             "fecha_registro" => $reloj->fecha_registro,
+
+            "id_marca" => $reloj->id_marca,
             "marca" => $reloj->marca,
+
+            "id_condicion" => $reloj->id_condicion,
             "condicion" => $reloj->condicion,
+
             "categorias" => $listaCategorias,
+
             "estado" => $reloj->estado,
+            "estado_vendedor" => $reloj->estado_vendedor,
+
             "vendedor" => $vendedor,
             "historial_subastas" => $historialSubastas
         ];
-
         return $relojFinal;
     }
 
     /* Crear */
     public function create($obj)
     {
-        $imagen = isset($obj->imagen) ? $obj->imagen : "";
-        $vSql = "INSERT INTO reloj
-                (modelo, descripcion, imagen, anio_fabricacion, precio_estimado, id_marca, id_condicion)
-                VALUES
-                (
-                    '$obj->modelo',
-                    '$obj->descripcion',
-                    '$imagen',
-                    '$obj->anio_fabricacion',
-                    '$obj->precio_estimado',
-                    $obj->id_marca,
-                    $obj->id_condicion
-                );";
+        /* 1 insertar reloj */
 
-        return $this->enlace->ExecuteSQL($vSql);
+        $imagen = isset($obj->imagen) ? $obj->imagen : "";
+
+        $sql = "INSERT INTO reloj
+            (modelo, descripcion, imagen, anio_fabricacion, precio_estimado, id_marca, id_condicion)
+            VALUES
+            (
+                '$obj->modelo',
+                '$obj->descripcion',
+                '$imagen',
+                '$obj->anio_fabricacion',
+                '$obj->precio_estimado',
+                $obj->id_marca,
+                $obj->id_condicion
+            )";
+
+        $idReloj = $this->enlace->executeSQL_DML_last($sql);
+
+        /* 2 insertar categorias */
+
+        if (!empty($obj->categorias)) {
+
+            foreach ($obj->categorias as $categoria) {
+
+                $sqlCat = "INSERT INTO reloj_categoria
+                       (id_reloj,id_categoria)
+                       VALUES ($idReloj,$categoria)";
+
+                $this->enlace->executeSQL_DML($sqlCat);
+            }
+        }
+
+        /* 3 asociar vendedor */
+
+        $sqlVend = "INSERT INTO reloj_vendedor
+                (id_reloj,id_usuario_vendedor,fecha_publicacion,id_estado_reloj_vendedor)
+                VALUES
+                ($idReloj,$obj->id_usuario,NOW(),1)";
+
+        $this->enlace->executeSQL_DML($sqlVend);
+
+        return $idReloj;
     }
 
     /* Actualizar */
     public function update($obj)
     {
+        /* validar subasta activa */
 
-        $imagen = isset($obj->imagen) ? $obj->imagen : "";
+        $sqlValidacion = "SELECT s.id_subasta
+                        FROM reloj_vendedor rv
+                        INNER JOIN subasta s
+                        ON s.id_reloj_vendedor = rv.id_reloj_vendedor
+                        WHERE rv.id_reloj = $obj->id_reloj    
+                        AND s.id_estado_subasta = 1";
 
-        $vSql = "UPDATE reloj SET
-                    modelo='$obj->modelo',
-                    descripcion='$obj->descripcion',
-                    imagen='$imagen',
-                    anio_fabricacion='$obj->anio_fabricacion',
-                    precio_estimado='$obj->precio_estimado',
-                    id_marca=$obj->id_marca,
-                    id_condicion=$obj->id_condicion
-                WHERE id_reloj=$obj->id_reloj;";
+        $subasta = $this->enlace->executeSQL($sqlValidacion);
 
-        return $this->enlace->ExecuteSQL($vSql);
+        if (!empty($subasta)) {
+            return [
+                "error" => "No se puede editar, el reloj está en subasta activa"
+            ];
+        }
+
+        /* actualizar reloj */
+
+        $sqlImagenActual = "SELECT imagen FROM reloj WHERE id_reloj = $obj->id_reloj";
+        $imagenActual = $this->enlace->executeSQL($sqlImagenActual);
+        $imagen = !empty($imagenActual) ? $imagenActual[0]->imagen : "";
+
+        if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === 0) {
+
+            $nombreArchivo = time() . "_" . $_FILES['imagen']['name'];
+            $ruta = "uploads/" . $nombreArchivo;
+
+            move_uploaded_file($_FILES['imagen']['tmp_name'], $ruta);
+
+
+            $rutaFisica = __DIR__ . "/../" . $imagen;
+
+            if (file_exists($rutaFisica)) {
+                unlink($rutaFisica);
+            }
+
+            $imagen = $ruta;
+        }
+
+        $sql = "UPDATE reloj SET
+            modelo='$obj->modelo',
+            descripcion='$obj->descripcion',
+            imagen='$imagen',
+            anio_fabricacion='$obj->anio_fabricacion',
+            precio_estimado='$obj->precio_estimado',
+            id_marca=$obj->id_marca,
+            id_condicion=$obj->id_condicion
+            WHERE id_reloj=$obj->id_reloj";
+
+        $this->enlace->executeSQL_DML($sql);
+
+        /* eliminar categorias anteriores */
+
+        $sqlDelete = "DELETE FROM reloj_categoria
+                  WHERE id_reloj=$obj->id_reloj";
+
+        $this->enlace->executeSQL_DML($sqlDelete);
+
+        /* insertar nuevas categorias */
+
+        if (!empty($obj->categorias)) {
+
+            foreach ($obj->categorias as $categoria) {
+
+                $sqlCat = "INSERT INTO reloj_categoria
+                       (id_reloj,id_categoria)
+                       VALUES ($obj->id_reloj,$categoria)";
+
+                $this->enlace->executeSQL_DML($sqlCat);
+            }
+        }
+
+        return [
+            "resultado" => "reloj actualizado"
+        ];
     }
 
     /* Eliminar */
     public function delete($id)
     {
-        $vSql = "DELETE FROM reloj WHERE id_reloj=$id;";
+        $sql1 = "UPDATE reloj
+             SET id_estado = 2
+             WHERE id_reloj = $id";
 
-        return $this->enlace->ExecuteSQL($vSql);
+        $this->enlace->executeSQL_DML($sql1);
     }
 
+    public function tieneSubastaActiva($idReloj)
+    {
+        $sql = "SELECT s.id_subasta
+            FROM reloj_vendedor rv
+            INNER JOIN subasta s
+            ON s.id_reloj_vendedor = rv.id_reloj_vendedor
+            WHERE rv.id_reloj = $idReloj
+            AND s.id_estado_subasta = 1";
+
+        return $this->enlace->executeSQL($sql);
+    }
+
+    public function cambiarEstado($id)
+    {
+        $sql = "UPDATE reloj
+            SET id_estado = CASE
+                WHEN id_estado = 1 THEN 2  
+                WHEN id_estado = 2 THEN 1  
+                ELSE id_estado
+            END
+            WHERE id_reloj = $id";
+
+        return $this->enlace->executeSQL_DML($sql);
+    }
     /*Metodo de buscar el reloj por marca*/
     public function allByMarca($idMarca)
-{
-    $vSql = "SELECT 
+    {
+        $vSql = "SELECT 
                 r.*,
                 m.nombre AS marca,
                 c.nombre AS condicion,
@@ -226,6 +371,6 @@ if (!empty($categorias)) {
             WHERE r.id_marca = $idMarca
             GROUP BY r.id_reloj;";
 
-    return $this->enlace->ExecuteSQL($vSql);
-}
+        return $this->enlace->ExecuteSQL($vSql);
+    }
 }
