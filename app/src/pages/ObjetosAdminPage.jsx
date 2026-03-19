@@ -125,6 +125,7 @@ export default function ObjetosAdminPage() {
 
   const handleImagen = (e) => {
     setImagen(e.target.files[0]);
+    setErrores((prev) => ({ ...prev, imagen: "" }));
   };
 
   /* Máximo 2 categorías — si ya hay 2, reemplaza la más antigua */
@@ -143,14 +144,14 @@ export default function ObjetosAdminPage() {
         setCategoriasSeleccionadas([...categoriasSeleccionadas, idCat]);
       }
     }
+    setErrores((prev) => ({ ...prev, categorias: "" }));
   };
 
   const validar = () => {
     const nuevosErrores = {};
     if (!form.modelo.trim()) nuevosErrores.modelo = "El modelo es requerido.";
     if (!form.descripcion.trim() || form.descripcion.length < 20)
-      nuevosErrores.descripcion =
-        "La descripción debe tener mínimo 20 caracteres.";
+      nuevosErrores.descripcion = "La descripción debe tener mínimo 20 caracteres.";
     if (!form.anio_fabricacion)
       nuevosErrores.anio_fabricacion = "El año es requerido.";
     if (!form.precio_estimado || isNaN(form.precio_estimado))
@@ -158,6 +159,10 @@ export default function ObjetosAdminPage() {
     if (!form.id_marca) nuevosErrores.id_marca = "Seleccione una marca.";
     if (!form.id_condicion)
       nuevosErrores.id_condicion = "Seleccione una condición.";
+    if (!imagen)
+      nuevosErrores.imagen = "Debe seleccionar una imagen.";
+    if (categoriasSeleccionadas.length === 0)
+      nuevosErrores.categorias = "Debe seleccionar al menos una categoría.";
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
@@ -282,7 +287,6 @@ export default function ObjetosAdminPage() {
             className="bg-white rounded-lg shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
             style={{ border: "2px solid #845b34" }}
           >
-            {/* Header */}
             <div
               className="flex items-center justify-between px-6 py-4 rounded-t-lg"
               style={{ backgroundColor: "#845b34" }}
@@ -298,7 +302,6 @@ export default function ObjetosAdminPage() {
               </button>
             </div>
 
-            {/* Body */}
             <div className="px-6 py-5 text-[#5b3717] font-[Montserrat]">
               {loading ? (
                 <p className="text-center py-6 text-[#845b34]">
@@ -306,7 +309,6 @@ export default function ObjetosAdminPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {/* Imagen */}
                   {detalle.imagen && (
                     <div className="flex justify-center mb-2">
                       <img
@@ -319,34 +321,13 @@ export default function ObjetosAdminPage() {
                   )}
 
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                    <p>
-                      <span className="font-semibold">Modelo:</span>{" "}
-                      {detalle.modelo}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Marca:</span>{" "}
-                      {detalle.marca}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Condición:</span>{" "}
-                      {detalle.condicion}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Año Fabricación:</span>{" "}
-                      {detalle.anio_fabricacion}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Precio Estimado:</span> $
-                      {Number(detalle.precio_estimado).toLocaleString()}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Estado:</span>{" "}
-                      {detalle.estado}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Fecha Registro:</span>{" "}
-                      {detalle.fecha_registro}
-                    </p>
+                    <p><span className="font-semibold">Modelo:</span> {detalle.modelo}</p>
+                    <p><span className="font-semibold">Marca:</span> {detalle.marca}</p>
+                    <p><span className="font-semibold">Condición:</span> {detalle.condicion}</p>
+                    <p><span className="font-semibold">Año Fabricación:</span> {detalle.anio_fabricacion}</p>
+                    <p><span className="font-semibold">Precio Estimado:</span> ${Number(detalle.precio_estimado).toLocaleString()}</p>
+                    <p><span className="font-semibold">Estado:</span> {detalle.estado}</p>
+                    <p><span className="font-semibold">Fecha Registro:</span> {detalle.fecha_registro}</p>
                     <p>
                       <span className="font-semibold">Vendedor:</span>{" "}
                       {detalle.vendedor
@@ -368,11 +349,7 @@ export default function ObjetosAdminPage() {
                           <span
                             key={i}
                             className="px-2 py-1 rounded-full text-xs font-medium"
-                            style={{
-                              backgroundColor: "#fdf3e7",
-                              border: "1px solid #e8a96e",
-                              color: "#845b34",
-                            }}
+                            style={{ backgroundColor: "#fdf3e7", border: "1px solid #e8a96e", color: "#845b34" }}
                           >
                             {cat.nombre}
                           </span>
@@ -381,51 +358,28 @@ export default function ObjetosAdminPage() {
                     </div>
                   )}
 
-                  {/* Historial de subastas */}
-                  {detalle.historial_subastas &&
-                    detalle.historial_subastas.length > 0 && (
-                      <div className="text-sm">
-                        <p className="font-semibold mb-2">
-                          Historial de Subastas:
-                        </p>
-                        <div className="space-y-2">
-                          {detalle.historial_subastas.map((sub) => (
-                            <div
-                              key={sub.id_subasta}
-                              className="px-3 py-2 rounded text-xs"
-                              style={{
-                                backgroundColor: "#fdf3e7",
-                                border: "1px solid #e8a96e",
-                              }}
-                            >
-                              <p>
-                                <span className="font-semibold">Estado:</span>{" "}
-                                {sub.estado_subasta}
-                              </p>
-                              <p>
-                                <span className="font-semibold">Inicio:</span>{" "}
-                                {sub.fecha_inicio} —{" "}
-                                <span className="font-semibold">Fin:</span>{" "}
-                                {sub.fecha_fin}
-                              </p>
-                              <p>
-                                <span className="font-semibold">
-                                  Precio inicial:
-                                </span>{" "}
-                                ${Number(sub.precio_inicial).toLocaleString()} |{" "}
-                                <span className="font-semibold">Pujas:</span>{" "}
-                                {sub.cantidad_pujas}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
+                  {detalle.historial_subastas && detalle.historial_subastas.length > 0 && (
+                    <div className="text-sm">
+                      <p className="font-semibold mb-2">Historial de Subastas:</p>
+                      <div className="space-y-2">
+                        {detalle.historial_subastas.map((sub) => (
+                          <div
+                            key={sub.id_subasta}
+                            className="px-3 py-2 rounded text-xs"
+                            style={{ backgroundColor: "#fdf3e7", border: "1px solid #e8a96e" }}
+                          >
+                            <p><span className="font-semibold">Estado:</span> {sub.estado_subasta}</p>
+                            <p><span className="font-semibold">Inicio:</span> {sub.fecha_inicio} — <span className="font-semibold">Fin:</span> {sub.fecha_fin}</p>
+                            <p><span className="font-semibold">Precio inicial:</span> ${Number(sub.precio_inicial).toLocaleString()} | <span className="font-semibold">Pujas:</span> {sub.cantidad_pujas}</p>
+                          </div>
+                        ))}
                       </div>
-                    )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Footer */}
             <div
               className="flex justify-end px-6 py-4 rounded-b-lg"
               style={{ borderTop: "1px solid #e8a96e" }}
@@ -455,7 +409,6 @@ export default function ObjetosAdminPage() {
             className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             style={{ border: "2px solid #845b34" }}
           >
-            {/* Header modal */}
             <div
               className="flex items-center justify-between px-6 py-4 rounded-t-lg"
               style={{ backgroundColor: "#845b34" }}
@@ -471,7 +424,6 @@ export default function ObjetosAdminPage() {
               </button>
             </div>
 
-            {/* Body modal */}
             <div className="px-6 py-5 space-y-4 text-[#5b3717]">
               {/* Vendedor provisional */}
               <div className="text-sm" style={{ color: "#5b3717" }}>
@@ -483,22 +435,16 @@ export default function ObjetosAdminPage() {
 
               {/* Modelo */}
               <div>
-                <label className="block text-sm font-semibold mb-1">
-                  Modelo *
-                </label>
+                <label className="block text-sm font-semibold mb-1">Modelo *</label>
                 <input
                   name="modelo"
                   value={form.modelo}
                   onChange={handleChange}
                   placeholder="Ej: Submariner 116610"
                   className="w-full border rounded px-3 py-2 text-sm focus:outline-none"
-                  style={{
-                    borderColor: errores.modelo ? "#dc2626" : "#845b34",
-                  }}
+                  style={{ borderColor: errores.modelo ? "#dc2626" : "#845b34" }}
                 />
-                {errores.modelo && (
-                  <p className="text-red-600 text-xs mt-1">{errores.modelo}</p>
-                )}
+                {errores.modelo && <p className="text-red-600 text-xs mt-1">{errores.modelo}</p>}
               </div>
 
               {/* Descripción */}
@@ -513,29 +459,18 @@ export default function ObjetosAdminPage() {
                   rows={3}
                   placeholder="Descripción del objeto..."
                   className="w-full border rounded px-3 py-2 text-sm focus:outline-none resize-none"
-                  style={{
-                    borderColor: errores.descripcion ? "#dc2626" : "#845b34",
-                  }}
+                  style={{ borderColor: errores.descripcion ? "#dc2626" : "#845b34" }}
                 />
-                <p
-                  className="text-xs mt-1"
-                  style={{
-                    color: form.descripcion.length < 20 ? "#845b34" : "#16a34a",
-                  }}
-                >
+                <p className="text-xs mt-1" style={{ color: form.descripcion.length < 20 ? "#845b34" : "#16a34a" }}>
                   {form.descripcion.length} / 20 caracteres mínimos
                 </p>
-                {errores.descripcion && (
-                  <p className="text-red-600 text-xs">{errores.descripcion}</p>
-                )}
+                {errores.descripcion && <p className="text-red-600 text-xs">{errores.descripcion}</p>}
               </div>
 
               {/* Año y Precio */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    Año de Fabricación *
-                  </label>
+                  <label className="block text-sm font-semibold mb-1">Año de Fabricación *</label>
                   <input
                     type="number"
                     name="anio_fabricacion"
@@ -545,22 +480,12 @@ export default function ObjetosAdminPage() {
                     min="1800"
                     max={new Date().getFullYear()}
                     className="w-full border rounded px-3 py-2 text-sm focus:outline-none"
-                    style={{
-                      borderColor: errores.anio_fabricacion
-                        ? "#dc2626"
-                        : "#845b34",
-                    }}
+                    style={{ borderColor: errores.anio_fabricacion ? "#dc2626" : "#845b34" }}
                   />
-                  {errores.anio_fabricacion && (
-                    <p className="text-red-600 text-xs mt-1">
-                      {errores.anio_fabricacion}
-                    </p>
-                  )}
+                  {errores.anio_fabricacion && <p className="text-red-600 text-xs mt-1">{errores.anio_fabricacion}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    Precio Estimado ($) *
-                  </label>
+                  <label className="block text-sm font-semibold mb-1">Precio Estimado ($) *</label>
                   <input
                     type="number"
                     name="precio_estimado"
@@ -570,96 +495,65 @@ export default function ObjetosAdminPage() {
                     min="0"
                     step="0.01"
                     className="w-full border rounded px-3 py-2 text-sm focus:outline-none"
-                    style={{
-                      borderColor: errores.precio_estimado
-                        ? "#dc2626"
-                        : "#845b34",
-                    }}
+                    style={{ borderColor: errores.precio_estimado ? "#dc2626" : "#845b34" }}
                   />
-                  {errores.precio_estimado && (
-                    <p className="text-red-600 text-xs mt-1">
-                      {errores.precio_estimado}
-                    </p>
-                  )}
+                  {errores.precio_estimado && <p className="text-red-600 text-xs mt-1">{errores.precio_estimado}</p>}
                 </div>
               </div>
 
               {/* Marca y Condición */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    Marca *
-                  </label>
+                  <label className="block text-sm font-semibold mb-1">Marca *</label>
                   <select
                     name="id_marca"
                     value={form.id_marca}
                     onChange={handleChange}
                     className="w-full border rounded px-3 py-2 text-sm focus:outline-none bg-white"
-                    style={{
-                      borderColor: errores.id_marca ? "#dc2626" : "#845b34",
-                    }}
+                    style={{ borderColor: errores.id_marca ? "#dc2626" : "#845b34" }}
                   >
                     <option value="">-- Seleccione --</option>
                     {marcas.map((m) => (
-                      <option key={m.id_marca} value={m.id_marca}>
-                        {m.nombre}
-                      </option>
+                      <option key={m.id_marca} value={m.id_marca}>{m.nombre}</option>
                     ))}
                   </select>
-                  {errores.id_marca && (
-                    <p className="text-red-600 text-xs mt-1">
-                      {errores.id_marca}
-                    </p>
-                  )}
+                  {errores.id_marca && <p className="text-red-600 text-xs mt-1">{errores.id_marca}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    Condición *
-                  </label>
+                  <label className="block text-sm font-semibold mb-1">Condición *</label>
                   <select
                     name="id_condicion"
                     value={form.id_condicion}
                     onChange={handleChange}
                     className="w-full border rounded px-3 py-2 text-sm focus:outline-none bg-white"
-                    style={{
-                      borderColor: errores.id_condicion ? "#dc2626" : "#845b34",
-                    }}
+                    style={{ borderColor: errores.id_condicion ? "#dc2626" : "#845b34" }}
                   >
                     <option value="">-- Seleccione --</option>
                     {condiciones.map((c) => (
-                      <option key={c.id_condicion} value={c.id_condicion}>
-                        {c.nombre}
-                      </option>
+                      <option key={c.id_condicion} value={c.id_condicion}>{c.nombre}</option>
                     ))}
                   </select>
-                  {errores.id_condicion && (
-                    <p className="text-red-600 text-xs mt-1">
-                      {errores.id_condicion}
-                    </p>
-                  )}
+                  {errores.id_condicion && <p className="text-red-600 text-xs mt-1">{errores.id_condicion}</p>}
                 </div>
               </div>
 
               {/* Imagen */}
               <div>
-                <label className="block text-sm font-semibold mb-1">
-                  Imagen
-                </label>
+                <label className="block text-sm font-semibold mb-1">Imagen *</label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImagen}
                   className="w-full text-sm text-[#5b3717]"
-                  style={{
-                    border: "1px solid #845b34",
-                    borderRadius: "4px",
-                    padding: "6px",
-                  }}
+                   style={{ borderColor: errores.anio_fabricacion ? "#dc2626" : "#845b34" }}
                 />
                 {imagen && (
                   <p className="text-xs mt-1 text-green-700">
                     Archivo seleccionado: {imagen.name}
                   </p>
+                )}
+                {errores.imagen && (
+                  <p className="text-red-600 text-xs mt-1">{errores.imagen}</p>
                 )}
               </div>
 
@@ -667,11 +561,8 @@ export default function ObjetosAdminPage() {
               {categorias.length > 0 && (
                 <div>
                   <label className="block text-sm font-semibold mb-2">
-                    Categorías (máx. 2)
-                    <span
-                      className="ml-2 font-normal text-xs"
-                      style={{ color: "#845b34" }}
-                    >
+                    Categorías * (máx. 2)
+                    <span className="ml-2 font-normal text-xs" style={{ color: "#845b34" }}>
                       {categoriasSeleccionadas.length}/2 seleccionadas
                     </span>
                   </label>
@@ -683,9 +574,7 @@ export default function ObjetosAdminPage() {
                       >
                         <input
                           type="checkbox"
-                          checked={categoriasSeleccionadas.includes(
-                            cat.id_categoria,
-                          )}
+                          checked={categoriasSeleccionadas.includes(cat.id_categoria)}
                           onChange={() => toggleCategoria(cat.id_categoria)}
                           style={{ accentColor: "#845b34" }}
                         />
@@ -693,10 +582,9 @@ export default function ObjetosAdminPage() {
                       </label>
                     ))}
                   </div>
-                  <p className="text-xs mt-1" style={{ color: "#845b34" }}>
-                    Si seleccionás una tercera, se reemplaza la primera
-                    automáticamente.
-                  </p>
+                  {errores.categorias && (
+                    <p className="text-red-600 text-xs mt-1">{errores.categorias}</p>
+                  )}
                 </div>
               )}
             </div>
