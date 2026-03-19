@@ -3,44 +3,28 @@ const API_URL = import.meta.env.VITE_API_URL;
 /* Obtener todas las subastas */
 export async function getSubastas() {
     const response = await fetch(`${API_URL}/subasta`);
-
-    if (!response.ok) {
-        throw new Error("Error al obtener subastas");
-    }
-
+    if (!response.ok) throw new Error("Error al obtener subastas");
     return await response.json();
 }
 
 /* Obtener subastas activas */
 export async function getSubastasActivas() {
     const response = await fetch(`${API_URL}/subasta/activas`);
-
-    if (!response.ok) {
-        throw new Error("Error al obtener subastas activas");
-    }
-
+    if (!response.ok) throw new Error("Error al obtener subastas activas");
     return await response.json();
 }
 
 /* Obtener subastas finalizadas */
 export async function getSubastasFinalizadas() {
     const response = await fetch(`${API_URL}/subasta/finalizadas`);
-
-    if (!response.ok) {
-        throw new Error("Error al obtener subastas finalizadas");
-    }
-
+    if (!response.ok) throw new Error("Error al obtener subastas finalizadas");
     return await response.json();
 }
 
 /* Obtener detalle de una subasta */
 export async function getSubastaDetalle(idSubasta) {
     const response = await fetch(`${API_URL}/subasta/${idSubasta}`);
-
-    if (!response.ok) {
-        throw new Error("Error al obtener la subasta");
-    }
-
+    if (!response.ok) throw new Error("Error al obtener la subasta");
     return await response.json();
 }
 
@@ -48,16 +32,13 @@ export async function getSubastaDetalle(idSubasta) {
 export async function createSubasta(data) {
     const response = await fetch(`${API_URL}/subasta`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     });
-
     if (!response.ok) {
-        throw new Error("Error al crear subasta");
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al crear subasta");
     }
-
     return await response.json();
 }
 
@@ -65,16 +46,22 @@ export async function createSubasta(data) {
 export async function updateSubasta(data) {
     const response = await fetch(`${API_URL}/subasta`, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     });
+    if (!response.ok) throw new Error("Error al actualizar subasta");
+    return await response.json();
+}
 
+/* Cancelar subasta — cambia estado a CANCELADA */
+export async function cancelarSubasta(idSubasta) {
+    const response = await fetch(`${API_URL}/subasta/cancelar/${idSubasta}`, {
+        method: "PUT",
+    });
     if (!response.ok) {
-        throw new Error("Error al actualizar subasta");
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al cancelar subasta");
     }
-
     return await response.json();
 }
 
@@ -83,23 +70,20 @@ export async function deleteSubasta(idSubasta) {
     const response = await fetch(`${API_URL}/subasta/${idSubasta}`, {
         method: "DELETE"
     });
-
-    if (!response.ok) {
-        throw new Error("Error al eliminar subasta");
-    }
-
+    if (!response.ok) throw new Error("Error al eliminar subasta");
     return await response.json();
-
-
 }
 
+/* Obtener historial de pujas de una subasta */
 export async function getHistorialPujas(idSubasta) {
     const response = await fetch(`${API_URL}/puja/getBySubasta/${idSubasta}`);
-
-    if (!response.ok) {
-        throw new Error("Error al obtener historial de pujas");
-    }
-
+    if (!response.ok) throw new Error("Error al obtener historial de pujas");
     return await response.json();
 }
 
+/* Obtener reloj_vendedor por id_reloj — necesario para crear subasta */
+export async function getRelojVendedorByReloj(idReloj) {
+    const response = await fetch(`${API_URL}/relojvendedor/byReloj/${idReloj}`);
+    if (!response.ok) throw new Error("Error al obtener reloj vendedor");
+    return await response.json();
+}

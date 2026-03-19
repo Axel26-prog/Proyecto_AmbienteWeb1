@@ -1,65 +1,26 @@
 <?php
 class RelojVendedorController
 {
-    private $model;
-
-    public function __construct()
+    /* GET /relojvendedor/byReloj/{id_reloj} */
+    public function byReloj($idReloj)
     {
-        $this->model = new RelojVendedorModel();
-    }
+        try {
+            $model = new RelojVendedorModel();
+            $result = $model->getByReloj($idReloj);
 
-    /* Listar todos */
-    public function index()
-    {
-        $response = $this->model->all();
-        echo json_encode($response);
-    }
+            if (!$result) {
+                http_response_code(404);
+                echo json_encode([
+                    "success" => false,
+                    "message" => "No se encontró reloj_vendedor para este reloj"
+                ]);
+                return;
+            }
 
-    /* Obtener uno */
-    public function get($id)
-    {
-        $response = $this->model->get($id);
-        echo json_encode($response);
-    }
+            echo json_encode($result);
 
-    /* Obtener por vendedor */
-    public function getByVendedor($idUsuario)
-    {
-        $response = $this->model->getByVendedor($idUsuario);
-        echo json_encode($response);
-    }
-
-    /* Crear */
-    public function create()
-    {
-        $request = json_decode(file_get_contents("php://input"));
-
-        $response = $this->model->create($request);
-
-        echo json_encode([
-            "success" => $response
-        ]);
-    }
-
-    /* Actualizar */
-    public function update()
-    {
-        $request = json_decode(file_get_contents("php://input"));
-
-        $response = $this->model->update($request);
-
-        echo json_encode([
-            "success" => $response
-        ]);
-    }
-
-    /* Eliminar */
-    public function delete($id)
-    {
-        $response = $this->model->delete($id);
-
-        echo json_encode([
-            "success" => $response
-        ]);
+        } catch (Exception $e) {
+            handleException($e);
+        }
     }
 }

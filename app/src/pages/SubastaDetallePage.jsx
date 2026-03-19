@@ -25,9 +25,9 @@ export default function SubastaDetallePage() {
       try {
         const detalleResponse = await getSubastaDetalle(id);
         const historialResponse = await getHistorialPujas(id);
-
-        const detalle = detalleResponse?.data || null;
-        const historial = historialResponse?.data || [];
+        
+        const detalle = detalleResponse || null;
+        const historial = Array.isArray(historialResponse?.data) ? historialResponse.data : [];
 
         setSubasta(detalle);
         setPujas(historial);
