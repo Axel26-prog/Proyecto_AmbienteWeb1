@@ -43,12 +43,29 @@ class RelojController
 
     public function update()
     {
-        $request = json_decode(file_get_contents("php://input"));
-
         $model = new RelojModel();
 
-        $response = $model->update($request);
+        // 1. Detectar el origen de los datos
+        if (!empty($_POST)) {
+            // Si viene de FormData (React enviando imagen)
+            $request = (object)$_POST;
+            
+            // Las categorías viajan como string JSON en FormData, las decodificamos
+            if (isset($request->categorias) && is_string($request->categorias)) {
+                $request->categorias = json_decode($request->categorias);
+            }
+        } else {
+            // Si viene como JSON plano (sin imagen)
+            $request = json_decode(file_get_contents("php://input"));
+        }
 
+        if (!$request || !isset($request->id_reloj)) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "Datos insuficientes"]);
+            return;
+        }
+
+        $response = $model->update($request);
         echo json_encode($response);
     }
 

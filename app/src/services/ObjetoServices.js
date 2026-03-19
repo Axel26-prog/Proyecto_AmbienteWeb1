@@ -27,13 +27,10 @@ export function crearReloj(data) {
 /* EDITAR */
 
 export function actualizarReloj(data) {
-  return apiFetch("reloj", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+  return fetch("http://localhost:81/appsubasta/api/reloj/update", {
+    method: "POST",
+    body: data, 
+  }).then((res) => res.json());
 }
 
 /* ELIMINACIÓN LÓGICA */

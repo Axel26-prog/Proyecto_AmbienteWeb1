@@ -11,28 +11,13 @@ import {
 export default function ObjetoEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [marcas, setMarcas] = useState([]);
   const [condiciones, setCondiciones] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [categoriasSeleccionadas, setCategoriasSeleccionadas] = useState([]);
 
-  const toggleCategoria = (id) => {
-  if (categoriasSeleccionadas.includes(id)) {
-    setCategoriasSeleccionadas(
-      categoriasSeleccionadas.filter((c) => c !== id)
-    );
-  } else {
-
-    
-    if (categoriasSeleccionadas.length >= 2) {
-      const nuevas = [...categoriasSeleccionadas.slice(1), id];
-      setCategoriasSeleccionadas(nuevas);
-    } else {
-      setCategoriasSeleccionadas([...categoriasSeleccionadas, id]);
-    }
-
-  }
-};
+  const [imagen, setImagen] = useState(null);
 
   const [reloj, setReloj] = useState({
     modelo: "",
@@ -46,58 +31,49 @@ export default function ObjetoEditPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-  iniciar();
-}, []);
+    iniciar();
+  }, []);
 
-const iniciar = async () => {
-  try {
-    setLoading(true);
+  const iniciar = async () => {
+    try {
+      setLoading(true);
 
-    const marcasData = await getMarcas();
-    const condicionesData = await getCondiciones();
-    const categoriasData = await getCategorias();
-    const relojData = await getRelojDetalle(id);
+      const marcasData = await getMarcas();
+      const condicionesData = await getCondiciones();
+      const categoriasData = await getCategorias();
+      const relojData = await getRelojDetalle(id);
 
-    setMarcas(marcasData);
-    setCondiciones(condicionesData);
-    setCategorias(categoriasData);
+      setMarcas(marcasData);
+      setCondiciones(condicionesData);
+      setCategorias(categoriasData);
 
-    setReloj({
-      ...relojData,
-    });
+      setReloj(relojData);
 
-    const marcaEncontrada = marcasData.find(
-      (m) => m.nombre === relojData.marca
-    );
+      setCategoriasSeleccionadas(
+        relojData.categorias.map((c) => Number(c))
+      );
 
-    if (marcaEncontrada) {
-      setReloj((prev) => ({
-        ...prev,
-        id_marca: marcaEncontrada.id_marca,
-      }));
+    } catch (error) {
+      console.error("Error cargando datos", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const condicionEncontrada = condicionesData.find(
-      (c) => c.nombre === relojData.condicion
-    );
-
-    if (condicionEncontrada) {
-      setReloj((prev) => ({
-        ...prev,
-        id_condicion: condicionEncontrada.id_condicion,
-      }));
+  const toggleCategoria = (idCat) => {
+    if (categoriasSeleccionadas.includes(idCat)) {
+      setCategoriasSeleccionadas(
+        categoriasSeleccionadas.filter((c) => c !== idCat)
+      );
+    } else {
+      if (categoriasSeleccionadas.length >= 2) {
+        const nuevas = [...categoriasSeleccionadas.slice(1), idCat];
+        setCategoriasSeleccionadas(nuevas);
+      } else {
+        setCategoriasSeleccionadas([...categoriasSeleccionadas, idCat]);
+      }
     }
-
-    const idsCategorias = relojData.categorias.map((id) => String(id));
-    setCategoriasSeleccionadas(idsCategorias);
-
-  } catch (error) {
-    console.error("Error cargando datos", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleChange = (e) => {
     setReloj({
@@ -106,11 +82,15 @@ const iniciar = async () => {
     });
   };
 
+  const handleImagen = (e) => {
+    setImagen(e.target.files[0]);
+  };
+
   const guardar = async (e) => {
     e.preventDefault();
 
     if (!reloj.modelo) {
-      alert("El nombre es obligatorio");
+      alert("El modelo es obligatorio");
       return;
     }
 
@@ -120,16 +100,30 @@ const iniciar = async () => {
     }
 
     try {
-      const datos = {
-        ...reloj,
-        categorias: categoriasSeleccionadas,
-      };
+      const formData = new FormData();
 
-      await actualizarReloj(datos);
+      formData.append("id_reloj", id);
+      formData.append("modelo", reloj.modelo);
+      formData.append("descripcion", reloj.descripcion);
+      formData.append("anio_fabricacion", reloj.anio_fabricacion);
+      formData.append("precio_estimado", reloj.precio_estimado);
+      formData.append("id_marca", reloj.id_marca);
+      formData.append("id_condicion", reloj.id_condicion);
+
+      formData.append(
+        "categorias",
+        JSON.stringify(categoriasSeleccionadas)
+      );
+
+      if (imagen) {
+        formData.append("imagen", imagen);
+      }
+
+      await actualizarReloj(formData);
 
       alert("Objeto actualizado correctamente");
-
       navigate("/objetos-admin");
+
     } catch (error) {
       console.error("Error actualizando", error);
       alert("Error al actualizar");
@@ -137,22 +131,22 @@ const iniciar = async () => {
   };
 
   return (
-    <div className="p-6 font-[Montserrat]">
-      {/* Titulo */}
-      <h1 className="text-2xl mb-6 font-bold font-[Georgia] text-[#845b34]">
+    <div className="p-6 font-[Montserrat] text-gray-900 bg-gray-100 min-h-screen">
+      
+      <h1 className="text-2xl mb-6 font-bold text-[#845b34]">
         Editar Objeto Subastable
       </h1>
 
-      {loading && <p className="text-[#845b34]">Cargando información...</p>}
+      {loading && <p className="text-gray-900">Cargando información...</p>}
 
       {!loading && (
         <form
           onSubmit={guardar}
-          className="bg-white shadow rounded-lg border border-[#845b34] p-6 max-w-xl"
+          className="bg-white shadow-lg rounded-lg border border-[#845b34] p-6 max-w-xl"
         >
           {/* Modelo */}
           <div className="mb-4">
-            <label className="block mb-1 font-[Georgia] text-[#845b34]">
+            <label className="block mb-1 text-[#845b34] font-semibold">
               Modelo
             </label>
             <input
@@ -166,7 +160,7 @@ const iniciar = async () => {
 
           {/* Descripción */}
           <div className="mb-4">
-            <label className="block mb-1 font-[Georgia] text-[#845b34]">
+            <label className="block mb-1 text-[#845b34] font-semibold">
               Descripción
             </label>
             <textarea
@@ -179,7 +173,7 @@ const iniciar = async () => {
 
           {/* Año */}
           <div className="mb-4">
-            <label className="block mb-1 font-[Georgia] text-[#845b34]">
+            <label className="block mb-1 text-[#845b34] font-semibold">
               Año Fabricación
             </label>
             <input
@@ -193,7 +187,7 @@ const iniciar = async () => {
 
           {/* Precio */}
           <div className="mb-4">
-            <label className="block mb-1 font-[Georgia] text-[#845b34]">
+            <label className="block mb-1 text-[#845b34] font-semibold">
               Precio Estimado
             </label>
             <input
@@ -207,7 +201,7 @@ const iniciar = async () => {
 
           {/* Marca */}
           <div className="mb-4">
-            <label className="block mb-1 font-[Georgia] text-[#845b34]">
+            <label className="block mb-1 text-[#845b34] font-semibold">
               Marca
             </label>
             <select
@@ -217,10 +211,9 @@ const iniciar = async () => {
               className="w-full border p-2 rounded bg-white text-gray-900"
             >
               <option value="">Seleccione marca</option>
-
-              {marcas.map((marca) => (
-                <option key={marca.id_marca} value={marca.id_marca}>
-                  {marca.nombre}
+              {marcas.map((m) => (
+                <option key={m.id_marca} value={m.id_marca}>
+                  {m.nombre}
                 </option>
               ))}
             </select>
@@ -228,7 +221,7 @@ const iniciar = async () => {
 
           {/* Condición */}
           <div className="mb-4">
-            <label className="block mb-1 font-[Georgia] text-[#845b34]">
+            <label className="block mb-1 text-[#845b34] font-semibold">
               Condición
             </label>
             <select
@@ -238,59 +231,60 @@ const iniciar = async () => {
               className="w-full border p-2 rounded bg-white text-gray-900"
             >
               <option value="">Seleccione condición</option>
-
-              {condiciones.map((cond) => (
-                <option key={cond.id_condicion} value={cond.id_condicion}>
-                  {cond.nombre}
+              {condiciones.map((c) => (
+                <option key={c.id_condicion} value={c.id_condicion}>
+                  {c.nombre}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Imagen */}
           <div className="mb-4">
-            <label className="block mb-1 font-[Georgia] text-[#845b34]">
-              Categorías
+            <label className="block mb-1 text-[#845b34] font-semibold">
+              Imagen
+            </label>
+            <input
+              type="file"
+              onChange={handleImagen}
+              className="text-gray-900"
+            />
+          </div>
+
+          {/* Categorías */}
+          <div className="mb-4">
+            <label className="block mb-2 text-[#845b34] font-semibold">
+              Categorías (máx 2)
             </label>
 
-            <div className="flex flex-wrap gap-3">
-              {categorias.map((cat) => (
-                <label
-                  key={cat.id_categoria}
-                  className="flex items-center gap-1 text-[#845b34] font-[Georgia]"
-                >
-                  <input
-                    type="checkbox"
-                    checked={categoriasSeleccionadas.includes(String(cat.id_categoria))}
-                    onChange={() => toggleCategoria(cat.id_categoria)}
-                  />
-
-                  {cat.nombre}
-                </label>
-              ))}
-            </div>
+            {categorias.map((cat) => (
+              <label
+                key={cat.id_categoria}
+                className="flex items-center gap-2 text-gray-900"
+              >
+                <input
+                  type="checkbox"
+                  checked={categoriasSeleccionadas.includes(cat.id_categoria)}
+                  onChange={() => toggleCategoria(cat.id_categoria)}
+                />
+                {cat.nombre}
+              </label>
+            ))}
           </div>
 
           {/* Botones */}
           <div className="flex gap-3 mt-4">
             <button
               type="submit"
-              className="px-4 py-2 rounded font-[Montserrat]"
-              style={{
-                backgroundColor: "#845b34",
-                color: "#e8a96e",
-              }}
+              className="px-4 py-2 rounded bg-[#845b34] text-white"
             >
               Guardar Cambios
             </button>
 
             <button
               type="button"
-              className="px-4 py-2 rounded border"
-              style={{
-                borderColor: "#845b34",
-                color: "#845b34",
-              }}
               onClick={() => navigate("/objetos-admin")}
+              className="px-4 py-2 rounded border border-[#845b34] text-[#845b34]"
             >
               Cancelar
             </button>

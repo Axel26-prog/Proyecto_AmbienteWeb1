@@ -239,50 +239,30 @@ class RelojModel
     /* Actualizar */
     public function update($obj)
     {
-        /* validar subasta activa */
-
-        $sqlValidacion = "SELECT s.id_subasta
-                        FROM reloj_vendedor rv
-                        INNER JOIN subasta s
-                        ON s.id_reloj_vendedor = rv.id_reloj_vendedor
-                        WHERE rv.id_reloj = $obj->id_reloj    
-                        AND s.id_estado_subasta = 1";
-
-        $subasta = $this->enlace->executeSQL($sqlValidacion);
-
-        if (!empty($subasta)) {
-            return [
-                "error" => "No se puede editar, el reloj está en subasta activa"
-            ];
-        }
-
-        /* actualizar reloj */
-
+        //  Obtener la imagen actual 
         $sqlImagenActual = "SELECT imagen FROM reloj WHERE id_reloj = $obj->id_reloj";
-        $imagenActual = $this->enlace->executeSQL($sqlImagenActual);
-        $imagen = !empty($imagenActual) ? $imagenActual[0]->imagen : "";
+        $resultadoImg = $this->enlace->executeSQL($sqlImagenActual);
+        $imagenFinal = !empty($resultadoImg) ? $resultadoImg[0]->imagen : "";
 
+        //  Procesar nueva imagen
         if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === 0) {
 
-            $nombreArchivo = time() . "_" . $_FILES['imagen']['name'];
-            $ruta = "uploads/" . $nombreArchivo;
+            $nombreArchivo = $_FILES['imagen']['name']; 
+            $rutaServidor = "uploads/" . $nombreArchivo;
 
-            move_uploaded_file($_FILES['imagen']['tmp_name'], $ruta);
+            if (move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaServidor)) {
+                // simplemente se actualiza el nombre en BD
 
-
-            $rutaFisica = __DIR__ . "/../" . $imagen;
-
-            if (file_exists($rutaFisica)) {
-                unlink($rutaFisica);
+                $imagenFinal = $nombreArchivo; 
             }
 
-            $imagen = $ruta;
         }
 
+        // 3. Actualizar tabla reloj
         $sql = "UPDATE reloj SET
             modelo='$obj->modelo',
             descripcion='$obj->descripcion',
-            imagen='$imagen',
+            imagen='$imagenFinal',
             anio_fabricacion='$obj->anio_fabricacion',
             precio_estimado='$obj->precio_estimado',
             id_marca=$obj->id_marca,
@@ -291,30 +271,17 @@ class RelojModel
 
         $this->enlace->executeSQL_DML($sql);
 
-        /* eliminar categorias anteriores */
-
-        $sqlDelete = "DELETE FROM reloj_categoria
-                  WHERE id_reloj=$obj->id_reloj";
-
-        $this->enlace->executeSQL_DML($sqlDelete);
-
-        /* insertar nuevas categorias */
+        // 4. Actualizar categorías (Limpiar e insertar)
+        $this->enlace->executeSQL_DML("DELETE FROM reloj_categoria WHERE id_reloj=$obj->id_reloj");
 
         if (!empty($obj->categorias)) {
-
-            foreach ($obj->categorias as $categoria) {
-
-                $sqlCat = "INSERT INTO reloj_categoria
-                       (id_reloj,id_categoria)
-                       VALUES ($obj->id_reloj,$categoria)";
-
+            foreach ($obj->categorias as $catId) {
+                $sqlCat = "INSERT INTO reloj_categoria (id_reloj, id_categoria) VALUES ($obj->id_reloj, $catId)";
                 $this->enlace->executeSQL_DML($sqlCat);
             }
         }
 
-        return [
-            "resultado" => "reloj actualizado"
-        ];
+        return ["success" => true, "message" => "Reloj actualizado"];
     }
 
     /* Eliminar */
