@@ -238,7 +238,7 @@ export default function ObjetosAdminPage() {
                   {reloj.estado === "activo" && "Activo"}
                   {reloj.estado === "eliminado" && "Eliminado"}
                 </td>
-                <td className="p-3 flex gap-2 flex-wrap">
+                <td className="p-3 flex gap-2 flex-wrap items-start">
                   <button
                     disabled={reloj.estado === "eliminado"}
                     className={`px-3 py-1 rounded ${reloj.estado === "eliminado" ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -250,17 +250,30 @@ export default function ObjetosAdminPage() {
                   >
                     Detalle
                   </button>
-                  <button
-                    disabled={reloj.estado === "eliminado"}
-                    className={`px-3 py-1 rounded border ${reloj.estado === "eliminado" ? "opacity-50 cursor-not-allowed" : ""}`}
-                    style={{ borderColor: "#845b34", color: "#845b34" }}
-                    onClick={() => {
-                      if (reloj.estado === "eliminado") return;
-                      navigate(`/objeto/${reloj.id_reloj}`);
-                    }}
-                  >
-                    Editar
-                  </button>
+
+                  <div className="flex flex-col">
+                    <button
+                      disabled={reloj.estado === "eliminado" || reloj.tiene_subasta_activa == 1}
+                      className={`px-3 py-1 rounded border ${
+                        reloj.estado === "eliminado" || reloj.tiene_subasta_activa == 1
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
+                      style={{ borderColor: "#845b34", color: "#845b34" }}
+                      onClick={() => {
+                        if (reloj.estado === "eliminado" || reloj.tiene_subasta_activa == 1) return;
+                        navigate(`/objeto/${reloj.id_reloj}`);
+                      }}
+                    >
+                      Editar
+                    </button>
+                    {reloj.tiene_subasta_activa == 1 && (
+                      <p className="text-xs mt-0.5 text-center" style={{ color: "#a07850" }}>
+                        En subasta activa
+                      </p>
+                    )}
+                  </div>
+
                   <button
                     className={`px-3 py-1 rounded text-white ${reloj.estado === "activo" ? "bg-red-500" : "bg-green-600"}`}
                     onClick={() => cambiarEstado(reloj.id_reloj)}
@@ -545,7 +558,11 @@ export default function ObjetosAdminPage() {
                   accept="image/*"
                   onChange={handleImagen}
                   className="w-full text-sm text-[#5b3717]"
-                   style={{ borderColor: errores.anio_fabricacion ? "#dc2626" : "#845b34" }}
+                  style={{
+                    border: errores.imagen ? "1px solid #dc2626" : "1px solid #845b34",
+                    borderRadius: "4px",
+                    padding: "6px",
+                  }}
                 />
                 {imagen && (
                   <p className="text-xs mt-1 text-green-700">
@@ -585,6 +602,9 @@ export default function ObjetosAdminPage() {
                   {errores.categorias && (
                     <p className="text-red-600 text-xs mt-1">{errores.categorias}</p>
                   )}
+                  <p className="text-xs mt-1" style={{ color: "#845b34" }}>
+                    Si seleccionás una tercera, se reemplaza la primera automáticamente.
+                  </p>
                 </div>
               )}
             </div>
