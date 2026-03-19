@@ -40,153 +40,157 @@ class RelojModel
     }
 
     /* Obtener por ID */
-    public function get($id)
-    {
-        /* CONSULTA PRINCIPAL DEL RELOJ */
+   public function get($id)
+{
+    /* CONSULTA PRINCIPAL DEL RELOJ */
 
-        $vSql = "SELECT 
-            r.id_reloj,
-            r.modelo,
-            r.descripcion,
-            r.imagen,
-            r.anio_fabricacion,
-            r.precio_estimado,
-            r.fecha_registro,
-            r.id_marca,
-            r.id_condicion,
-            m.nombre AS marca,
-            c.nombre AS condicion,
-            er.nombre AS estado,
-            erv.nombre AS estado_vendedor,
-            u.id_usuario,
-            u.nombre,
-            u.apellido
+    $vSql = "SELECT 
+        r.id_reloj,
+        r.modelo,
+        r.descripcion,
+        r.imagen,
+        r.anio_fabricacion,
+        r.precio_estimado,
+        r.fecha_registro,
+        r.id_marca,
+        r.id_condicion,
+        m.nombre AS marca,
+        c.nombre AS condicion,
+        er.nombre AS estado,
+        erv.nombre AS estado_vendedor,
+        u.id_usuario,
+        u.nombre,
+        u.apellido
 
-        FROM reloj r
-        INNER JOIN marca m 
-            ON r.id_marca = m.id_marca
-        INNER JOIN condicion c 
-            ON r.id_condicion = c.id_condicion
-        INNER JOIN estado_reloj er
-            ON r.id_estado = er.id_estado
-        LEFT JOIN reloj_vendedor rv 
-            ON rv.id_reloj = r.id_reloj
-        LEFT JOIN estado_reloj_vendedor erv 
-            ON rv.id_estado_reloj_vendedor = erv.id_estado_reloj_vendedor
-        LEFT JOIN usuario u 
-            ON rv.id_usuario_vendedor = u.id_usuario
-        WHERE r.id_reloj = $id";
+    FROM reloj r
+    INNER JOIN marca m 
+        ON r.id_marca = m.id_marca
+    INNER JOIN condicion c 
+        ON r.id_condicion = c.id_condicion
+    INNER JOIN estado_reloj er
+        ON r.id_estado = er.id_estado
+    LEFT JOIN reloj_vendedor rv 
+        ON rv.id_reloj = r.id_reloj
+    LEFT JOIN estado_reloj_vendedor erv 
+        ON rv.id_estado_reloj_vendedor = erv.id_estado_reloj_vendedor
+    LEFT JOIN usuario u 
+        ON rv.id_usuario_vendedor = u.id_usuario
+    WHERE r.id_reloj = $id";
 
-        $resultado = $this->enlace->ExecuteSQL($vSql);
+    $resultado = $this->enlace->ExecuteSQL($vSql);
 
-        if (empty($resultado)) {
-            return null;
-        }
+    if (empty($resultado)) {
+        return null;
+    }
 
-        $reloj = $resultado[0];
+    $reloj = $resultado[0];
 
-        /* CONSULTA CATEGORIAS */
+    /* CONSULTA CATEGORIAS */
 
-        $vSqlCategorias = "SELECT c.id_categoria
-                       FROM reloj_categoria rc
-                       INNER JOIN categoria c
-                       ON rc.id_categoria = c.id_categoria
-                       WHERE rc.id_reloj = $id";
+    $vSqlCategorias = "SELECT c.id_categoria, c.nombre
+                   FROM reloj_categoria rc
+                   INNER JOIN categoria c
+                   ON rc.id_categoria = c.id_categoria
+                   WHERE rc.id_reloj = $id";
 
-        $categorias = $this->enlace->ExecuteSQL($vSqlCategorias);
+    $categorias = $this->enlace->ExecuteSQL($vSqlCategorias);
 
-        $listaCategorias = [];
+    $listaCategorias = [];
 
-        if (!empty($categorias)) {
-            foreach ($categorias as $cat) {
-                $listaCategorias[] = $cat->id_categoria;
-            }
-        }
-
-        /* INFORMACIÓN DEL VENDEDOR */
-
-        $vendedor = null;
-
-        if ($reloj->id_usuario != null) {
-            $vendedor = [
-                "id_usuario" => $reloj->id_usuario,
-                "nombre" => $reloj->nombre,
-                "apellido" => $reloj->apellido
+    if (!empty($categorias)) {
+        foreach ($categorias as $cat) {
+            $listaCategorias[] = [
+                "id_categoria" => $cat->id_categoria,
+                "nombre"       => $cat->nombre
             ];
         }
-
-        /* HISTORIAL DE SUBASTAS */
-
-        $vSqlHistorial = "SELECT 
-                        s.id_subasta,
-                        s.fecha_inicio,
-                        s.fecha_fin,
-                        s.precio_inicial,
-                        s.incremento_minimo,
-                        es.nombre AS estado_subasta,
-                        COUNT(p.id_puja) AS cantidad_pujas
-                      FROM reloj_vendedor rv
-                      INNER JOIN subasta s
-                        ON s.id_reloj_vendedor = rv.id_reloj_vendedor
-                      INNER JOIN estado_subasta es
-                        ON s.id_estado_subasta = es.id_estado_subasta
-                      LEFT JOIN puja p
-                        ON p.id_subasta = s.id_subasta
-                      WHERE rv.id_reloj = $id
-                      GROUP BY 
-                        s.id_subasta,
-                        s.fecha_inicio,
-                        s.fecha_fin,
-                        s.precio_inicial,
-                        s.incremento_minimo,
-                        es.nombre
-                      ORDER BY s.fecha_inicio DESC";
-
-        $historial = $this->enlace->ExecuteSQL($vSqlHistorial);
-
-        $historialSubastas = [];
-
-        if (is_array($historial) && !empty($historial)) {
-            foreach ($historial as $sub) {
-                $historialSubastas[] = [
-                    "id_subasta" => $sub->id_subasta,
-                    "fecha_inicio" => $sub->fecha_inicio,
-                    "fecha_fin" => $sub->fecha_fin,
-                    "precio_inicial" => $sub->precio_inicial,
-                    "incremento_minimo" => $sub->incremento_minimo,
-                    "estado_subasta" => $sub->estado_subasta,
-                    "cantidad_pujas" => $sub->cantidad_pujas
-                ];
-            }
-        }
-
-        /* RESULTADO FINAL */
-
-        $relojFinal = [
-            "id_reloj" => $reloj->id_reloj,
-            "modelo" => $reloj->modelo,
-            "descripcion" => $reloj->descripcion,
-            "imagen" => $reloj->imagen,
-            "anio_fabricacion" => $reloj->anio_fabricacion,
-            "precio_estimado" => $reloj->precio_estimado,
-            "fecha_registro" => $reloj->fecha_registro,
-
-            "id_marca" => $reloj->id_marca,
-            "marca" => $reloj->marca,
-
-            "id_condicion" => $reloj->id_condicion,
-            "condicion" => $reloj->condicion,
-
-            "categorias" => $listaCategorias,
-
-            "estado" => $reloj->estado,
-            "estado_vendedor" => $reloj->estado_vendedor,
-
-            "vendedor" => $vendedor,
-            "historial_subastas" => $historialSubastas
-        ];
-        return $relojFinal;
     }
+
+    /* INFORMACIÓN DEL VENDEDOR */
+
+    $vendedor = null;
+
+    if ($reloj->id_usuario != null) {
+        $vendedor = [
+            "id_usuario" => $reloj->id_usuario,
+            "nombre"     => $reloj->nombre,
+            "apellido"   => $reloj->apellido
+        ];
+    }
+
+    /* HISTORIAL DE SUBASTAS */
+
+    $vSqlHistorial = "SELECT 
+                    s.id_subasta,
+                    s.fecha_inicio,
+                    s.fecha_fin,
+                    s.precio_inicial,
+                    s.incremento_minimo,
+                    es.nombre AS estado_subasta,
+                    COUNT(p.id_puja) AS cantidad_pujas
+                  FROM reloj_vendedor rv
+                  INNER JOIN subasta s
+                    ON s.id_reloj_vendedor = rv.id_reloj_vendedor
+                  INNER JOIN estado_subasta es
+                    ON s.id_estado_subasta = es.id_estado_subasta
+                  LEFT JOIN puja p
+                    ON p.id_subasta = s.id_subasta
+                  WHERE rv.id_reloj = $id
+                  GROUP BY 
+                    s.id_subasta,
+                    s.fecha_inicio,
+                    s.fecha_fin,
+                    s.precio_inicial,
+                    s.incremento_minimo,
+                    es.nombre
+                  ORDER BY s.fecha_inicio DESC";
+
+    $historial = $this->enlace->ExecuteSQL($vSqlHistorial);
+
+    $historialSubastas = [];
+
+    if (is_array($historial) && !empty($historial)) {
+        foreach ($historial as $sub) {
+            $historialSubastas[] = [
+                "id_subasta"        => $sub->id_subasta,
+                "fecha_inicio"      => $sub->fecha_inicio,
+                "fecha_fin"         => $sub->fecha_fin,
+                "precio_inicial"    => $sub->precio_inicial,
+                "incremento_minimo" => $sub->incremento_minimo,
+                "estado_subasta"    => $sub->estado_subasta,
+                "cantidad_pujas"    => $sub->cantidad_pujas
+            ];
+        }
+    }
+
+    /* RESULTADO FINAL */
+
+    $relojFinal = [
+        "id_reloj"          => $reloj->id_reloj,
+        "modelo"            => $reloj->modelo,
+        "descripcion"       => $reloj->descripcion,
+        "imagen"            => $reloj->imagen,
+        "anio_fabricacion"  => $reloj->anio_fabricacion,
+        "precio_estimado"   => $reloj->precio_estimado,
+        "fecha_registro"    => $reloj->fecha_registro,
+
+        "id_marca"          => $reloj->id_marca,
+        "marca"             => $reloj->marca,
+
+        "id_condicion"      => $reloj->id_condicion,
+        "condicion"         => $reloj->condicion,
+
+        "categorias"        => $listaCategorias,
+
+        "estado"            => $reloj->estado,
+        "estado_vendedor"   => $reloj->estado_vendedor,
+
+        "vendedor"          => $vendedor,
+        "historial_subastas" => $historialSubastas
+    ];
+
+    return $relojFinal;
+}
 
     /* Crear */
     public function create($obj)

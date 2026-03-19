@@ -36,29 +36,29 @@ export default function ObjetoEditPage() {
 
   const iniciar = async () => {
     try {
-      setLoading(true);
+        setLoading(true);
 
-      const marcasData = await getMarcas();
-      const condicionesData = await getCondiciones();
-      const categoriasData = await getCategorias();
-      const relojData = await getRelojDetalle(id);
+        const marcasData     = await getMarcas();
+        const condicionesData = await getCondiciones();
+        const categoriasData  = await getCategorias();
+        const relojData       = await getRelojDetalle(id);
 
-      setMarcas(marcasData);
-      setCondiciones(condicionesData);
-      setCategorias(categoriasData);
+        setMarcas(marcasData);
+        setCondiciones(condicionesData);
+        setCategorias(categoriasData);
+        setReloj(relojData);
 
-      setReloj(relojData);
-
-      setCategoriasSeleccionadas(
-        relojData.categorias.map((c) => Number(c))
-      );
+        // Ahora cada categoría es { id_categoria, nombre }
+        setCategoriasSeleccionadas(
+            relojData.categorias.map((c) => c.id_categoria)
+        );
 
     } catch (error) {
-      console.error("Error cargando datos", error);
+        console.error("Error cargando datos", error);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const toggleCategoria = (idCat) => {
     if (categoriasSeleccionadas.includes(idCat)) {

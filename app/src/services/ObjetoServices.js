@@ -1,53 +1,50 @@
 import { apiFetch } from "./api";
 
-/* LISTAR TODOS */
+/* USUARIO */
+export function getUsuario(id) {
+  return apiFetch(`usuario/${id}`);
+}
 
+/* LISTAR TODOS */
 export function getRelojes() {
   return apiFetch("reloj");
 }
 
 /* DETALLE */
-
 export function getRelojDetalle(id) {
   return apiFetch(`reloj/${id}`);
 }
 
-/* CREAR */
-
-export function crearReloj(data) {
-  return apiFetch("reloj", {
+/* CREAR — envía FormData para soportar upload de imagen */
+export function crearReloj(formData) {
+  return fetch("http://localhost:81/appsubasta/api/reloj", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+    body: formData, // Sin Content-Type: el browser lo setea con el boundary correcto
+  }).then((res) => res.json());
 }
 
 /* EDITAR */
-
 export function actualizarReloj(data) {
   return fetch("http://localhost:81/appsubasta/api/reloj/update", {
     method: "POST",
-    body: data, 
+    body: data,
   }).then((res) => res.json());
 }
 
 /* ELIMINACIÓN LÓGICA */
-
 export function eliminarReloj(id) {
   return apiFetch(`reloj/${id}`, {
     method: "DELETE",
   });
 }
 
-/* ACTIVAR */
-
- export function cambiarActivo(id) {
+/* ACTIVAR/DESACTIVAR */
+export function cambiarActivo(id) {
   return apiFetch(`reloj/toggle/${id}`, {
     method: "PUT",
   });
 }
+
 export function getMarcas() {
   return apiFetch("marca");
 }

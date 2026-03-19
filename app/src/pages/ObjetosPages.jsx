@@ -59,10 +59,12 @@ export default function ObjetosPage() {
     }
   };
   const categorias = Array.isArray(detalle?.categorias)
-    ? detalle.categorias
-    : typeof detalle?.categorias === "string"
-      ? detalle.categorias.split(", ")
-      : [];
+  ? detalle.categorias.map((cat) =>
+      typeof cat === "object" ? cat.nombre : cat
+    )
+  : typeof detalle?.categorias === "string"
+    ? detalle.categorias.split(", ")
+    : [];
 
   return (
     <div className="bg-gray-100 min-h-screen font-[Montserrat]">
