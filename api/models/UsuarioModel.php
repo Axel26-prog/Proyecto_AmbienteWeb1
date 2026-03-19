@@ -10,7 +10,7 @@ class UsuarioModel
 
     public function all()
 {
-    $vSql = "SELECT u.id_usuario,
+     $vSql = "SELECT u.id_usuario,
                     u.nombre,
                     u.apellido,
                     u.correo,
@@ -24,8 +24,7 @@ class UsuarioModel
              INNER JOIN rol r
                 ON u.id_rol = r.id_rol
              INNER JOIN estado_usuario eu
-                ON u.id_estado_usuario = eu.id_estado_usuario
-             WHERE u.id_estado_usuario = 1;";
+                ON u.id_estado_usuario = eu.id_estado_usuario;";
 
     return $this->enlace->executeSQL($vSql);
 }
