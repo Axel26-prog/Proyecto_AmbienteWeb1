@@ -46,10 +46,15 @@ export default function UsuariosPage() {
     setOpenModal(true);
   };
 
-  const eliminarUsuario = async (id) => {
+  const eliminarUsuario = async (id, estado) => {
     if (!id) return;
 
-    const confirmado = window.confirm("¿Desea eliminar (desactivar) este usuario?");
+    const mensaje =
+      estado === "Activo"
+        ? "¿Desea eliminar (desactivar) este usuario?"
+        : "¿Desea reactivar este usuario?";
+
+    const confirmado = window.confirm(mensaje);
     if (!confirmado) return;
 
     try {
@@ -60,8 +65,8 @@ export default function UsuariosPage() {
         await verDetalle(id);
       }
     } catch (error) {
-      console.error("Error eliminando usuario", error);
-      alert("No se pudo eliminar el usuario");
+      console.error("Error cambiando estado del usuario", error);
+      alert("No se pudo cambiar el estado del usuario");
     }
   };
 
@@ -111,31 +116,56 @@ export default function UsuariosPage() {
 
           <tbody className="text-[#5b3717]">
             {usuarios.map((usuario) => (
-              <tr key={usuario.id_usuario} className="border-t border-[#845b34]/20">
-                <td className="p-3">
+              <tr
+                key={usuario.id_usuario}
+                className={`border-t border-[#845b34]/20 ${usuario.estado === "Inactivo"
+                    ? "bg-gray-100"   
+                    : "bg-white"
+                  }`}
+              >
+                <td
+                  className={`p-3 ${usuario.estado === "Inactivo" ? "text-gray-500" : ""
+                    }`}
+                >
                   {usuario.nombre} {usuario.apellido}
                 </td>
-                <td className="p-3">{usuario.rol}</td>
-                <td className="p-3">{usuario.estado}</td>
+
+                <td
+                  className={`p-3 ${usuario.estado === "Inactivo" ? "text-gray-500" : ""
+                    }`}
+                >
+                  {usuario.rol}
+                </td>
+
+                <td
+                  className={`p-3 ${usuario.estado === "Inactivo" ? "font-semibold text-gray-500" : ""
+                    }`}
+                >
+                  {usuario.estado}
+                </td>
+
                 <td className="p-3">
                   <div className="flex items-center gap-2">
                     <button
-                      className="rounded bg-[#845b34] px-3 py-1 font-[Montserrat] text-[#e8a96e] transition-all duration-300 hover:scale-105 hover:bg-[#5b3717]"
-                      onClick={() => verDetalle(usuario.id_usuario)}
+                      className={`rounded px-3 py-1 font-[Montserrat] transition-all duration-300 ${usuario.estado === "Inactivo"
+                          ? "cursor-not-allowed bg-[#cbb9a6] text-white"
+                          : "bg-[#845b34] text-[#e8a96e] hover:scale-105 hover:bg-[#5b3717]"
+                        }`}
+                      onClick={() =>
+                        usuario.estado !== "Inactivo" && verDetalle(usuario.id_usuario)
+                      }
                     >
                       Detalle
                     </button>
 
                     <button
-                      className="rounded px-3 py-1 font-[Montserrat] font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-red-700"
-                      style={{
-                        backgroundColor:
-                          usuario.estado === "Activo" ? "#b91c1c" : "#6b7280",
-                      }}
-                      onClick={() => eliminarUsuario(usuario.id_usuario)}
-                      title="Eliminar usuario"
+                      className={`rounded px-3 py-1 font-[Montserrat] text-white transition-all duration-300 hover:scale-105 ${usuario.estado === "Activo"
+                          ? "bg-red-600 hover:bg-red-700"
+                          : "bg-green-600 hover:bg-green-700"
+                        }`}
+                      onClick={() => eliminarUsuario(usuario.id_usuario, usuario.estado)}
                     >
-                      🗑
+                      {usuario.estado === "Activo" ? "Eliminar" : "Reactivar"}
                     </button>
                   </div>
                 </td>
@@ -156,7 +186,7 @@ export default function UsuariosPage() {
               onClick={abrirEditar}
               className="rounded bg-[#845b34] px-3 py-1 font-[Montserrat] font-semibold text-[#e8a96e] transition-all duration-300 hover:scale-105 hover:bg-[#5b3717]"
             >
-            Editar
+              Editar
             </button>
           </div>
 
