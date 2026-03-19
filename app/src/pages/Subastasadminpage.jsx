@@ -255,7 +255,7 @@ export default function SubastasAdminPage() {
                           )}
                         </div>
 
-                        {/* Cancelar — siempre visible, deshabilitado con razón */}
+                        {}
                         <div>
                           <button
                             onClick={() => cancelar.puede && handleCancelar(s.id_subasta)}

@@ -74,14 +74,14 @@ export async function deleteSubasta(idSubasta) {
     return await response.json();
 }
 
-/* Obtener historial de pujas de una subasta */
+
 export async function getHistorialPujas(idSubasta) {
     const response = await fetch(`${API_URL}/puja/getBySubasta/${idSubasta}`);
     if (!response.ok) throw new Error("Error al obtener historial de pujas");
     return await response.json();
 }
 
-/* Obtener reloj_vendedor por id_reloj — necesario para crear subasta */
+
 export async function getRelojVendedorByReloj(idReloj) {
     const response = await fetch(`${API_URL}/relojvendedor/byReloj/${idReloj}`);
     if (!response.ok) throw new Error("Error al obtener reloj vendedor");

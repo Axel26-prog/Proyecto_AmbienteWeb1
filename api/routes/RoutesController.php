@@ -6,7 +6,7 @@ class RoutesController
 
     public function __construct()
     {
-        // Si luego activas JWT
+       
         // $this->authMiddleware = new AuthMiddleware();
         // $this->registerRoutes();
 
@@ -34,7 +34,7 @@ class RoutesController
         $routesArray = explode("/", trim($requestUri, "/"));
 
         // ==============================
-        // 📂 Manejo de imágenes /uploads
+        //  Manejo de imágenes /uploads
         // ==============================
         if (isset($routesArray[0]) && $routesArray[0] === 'uploads') {
             $filePath = dirname(__DIR__) . '/' . implode("/", $routesArray);
@@ -65,7 +65,7 @@ class RoutesController
             return;
         }
 
-        // 🔥 Conversión automática a Controller
+        // Conversión automática a Controller
         $controllerName = ucfirst($routesArray[0]) . "Controller";
         $action = $routesArray[1] ?? null;
         $param1 = $routesArray[2] ?? null;
@@ -82,7 +82,7 @@ class RoutesController
                     case 'GET':
 
                         if ($action && is_numeric($action)) {
-                            // GET /reloj/1
+                          
                             $controller->get($action);
 
                         } elseif ($action && method_exists($controller, $action)) {
@@ -96,7 +96,7 @@ class RoutesController
                             }
 
                         } elseif (!$action) {
-                            // GET /reloj
+                        
                             $controller->index();
 
                         } else {

@@ -127,7 +127,7 @@ class SubastaModel
         return $this->enlace->executeSQL_DML($vSql);
     }
 
-    /* Cancelar subasta — cambia estado a CANCELADA (id_estado_subasta = 3) */
+    
     public function cancelar($id)
     {
         $vSql = "UPDATE subasta

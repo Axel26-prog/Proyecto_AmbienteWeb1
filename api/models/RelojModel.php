@@ -255,8 +255,7 @@ class RelojModel
             $rutaServidor = "uploads/" . $nombreArchivo;
 
             if (move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaServidor)) {
-                // simplemente se actualiza el nombre en BD
-
+                
                 $imagenFinal = $nombreArchivo; 
             }
 
@@ -275,7 +274,7 @@ class RelojModel
 
         $this->enlace->executeSQL_DML($sql);
 
-        // 4. Actualizar categorías (Limpiar e insertar)
+      
         $this->enlace->executeSQL_DML("DELETE FROM reloj_categoria WHERE id_reloj=$obj->id_reloj");
 
         if (!empty($obj->categorias)) {

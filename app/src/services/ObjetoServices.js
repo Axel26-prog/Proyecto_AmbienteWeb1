@@ -15,11 +15,11 @@ export function getRelojDetalle(id) {
   return apiFetch(`reloj/${id}`);
 }
 
-/* CREAR — envía FormData para soportar upload de imagen */
+
 export function crearReloj(formData) {
   return fetch("http://localhost:81/appsubasta/api/reloj", {
     method: "POST",
-    body: formData, // Sin Content-Type: el browser lo setea con el boundary correcto
+    body: formData, 
   }).then((res) => res.json());
 }
 
