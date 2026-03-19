@@ -1,34 +1,36 @@
 import { useEffect, useState } from "react";
-import { getUsuarios, getUsuarioDetalle } from "@/services/UsuarioServices";
+import { getUsuarios, getUsuarioDetalle, deleteUsuario } from "@/services/UsuarioServices";
+import UsuarioModal from "@/components/UsuariosModal";
 
-//se importan los hooks useEffect y useState para el manejo del estado de la pagina
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState([]);
   const [detalle, setDetalle] = useState(null);
-  const [loading, setLoading] = useState(false); //indica si está cargando la informacion
+  const [loading, setLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
+  const [modoModal, setModoModal] = useState("crear");
+  const [usuarioEditar, setUsuarioEditar] = useState(null);
 
   useEffect(() => {
     cargarUsuarios();
   }, []);
 
-  //llama al servicio getUsuarios
   const cargarUsuarios = async () => {
     try {
       const data = await getUsuarios();
-      setUsuarios(data); //guarda la lista usuarios 
+      setUsuarios(data);
     } catch (error) {
       console.error("Error cargando usuarios", error);
     }
   };
 
-  //llama al servicio getUsuarioDetalle
   const verDetalle = async (id) => {
     if (!id) return;
+
     try {
       setLoading(true);
       const data = await getUsuarioDetalle(id);
-      setDetalle(data); //guarda los detalles del usuario seleccionada, incluyendo la cantidad de pujas y subastas
+      setDetalle(data);
     } catch (error) {
       console.error("Error cargando detalle", error);
     } finally {
@@ -36,20 +38,69 @@ export default function UsuariosPage() {
     }
   };
 
+  const abrirEditar = () => {
+    if (!detalle) return;
+
+    setModoModal("editar");
+    setUsuarioEditar(detalle);
+    setOpenModal(true);
+  };
+
+  const eliminarUsuario = async (id) => {
+    if (!id) return;
+
+    const confirmado = window.confirm("¿Desea eliminar (desactivar) este usuario?");
+    if (!confirmado) return;
+
+    try {
+      await deleteUsuario(id);
+      await cargarUsuarios();
+
+      if (detalle && detalle.id_usuario === id) {
+        await verDetalle(id);
+      }
+    } catch (error) {
+      console.error("Error eliminando usuario", error);
+      alert("No se pudo eliminar el usuario");
+    }
+  };
+
   return (
     <div className="p-6 font-[Montserrat]">
-      
-      {/* Título */}
-      <h1 className="text-2xl mb-4 font-bold font-[Georgia] text-[#845b34]">
-        Usuarios y Perfiles
-      </h1>
+      <UsuarioModal
+        isOpen={openModal}
+        onClose={() => setOpenModal(false)}
+        modo={modoModal}
+        usuario={usuarioEditar}
+        onGuardar={async () => {
+          await cargarUsuarios();
 
-      {/* Tabla */}
-      <div className="bg-white shadow rounded-lg overflow-x-auto border border-[#845b34]">
+          if (detalle?.id_usuario) {
+            await verDetalle(detalle.id_usuario);
+          }
+        }}
+      />
+
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="font-[Georgia] text-2xl font-bold text-[#845b34]">
+          Usuarios y Perfiles
+        </h1>
+
+        <button
+          onClick={() => {
+            setModoModal("crear");
+            setUsuarioEditar(null);
+            setOpenModal(true);
+          }}
+          className="rounded bg-[#845b34] px-4 py-2 font-[Montserrat] font-semibold text-[#e8a96e] transition-all duration-300 hover:scale-105 hover:bg-[#5b3717]"
+        >
+          + Agregar
+        </button>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border border-[#845b34] bg-white shadow">
         <table className="w-full">
-          
-          {/* Encabezado */}
-          <thead className="bg-[#845b34] text-[#e8a96e] font-[Georgia] font-bold">
+          <thead className="bg-[#845b34] font-[Georgia] font-bold text-[#e8a96e]">
             <tr>
               <th className="p-3 text-left">Nombre Completo</th>
               <th className="p-3 text-left">Rol</th>
@@ -58,54 +109,87 @@ export default function UsuariosPage() {
             </tr>
           </thead>
 
-          {/* Contenido */}
           <tbody className="text-[#5b3717]">
             {usuarios.map((usuario) => (
               <tr key={usuario.id_usuario} className="border-t border-[#845b34]/20">
-                <td className="p-3">{usuario.nombre} {usuario.apellido}</td>
-                <td className="p-3">{usuario.rol}</td>  {/* Inner Join para traer el nombre del rol */}
-                <td className="p-3">{usuario.estado}</td> {/* Inner Join para traer el nombre del estado */}
-
                 <td className="p-3">
-                  <button
-                    className="px-3 py-1 rounded font-[Montserrat]"
-                    style={{
-                      backgroundColor: "#845b34",
-                      color: "#e8a96e"
-                    }}
-                    onClick={() => verDetalle(usuario.id_usuario)}
-                  >
-                    Detalle
-                  </button>
+                  {usuario.nombre} {usuario.apellido}
+                </td>
+                <td className="p-3">{usuario.rol}</td>
+                <td className="p-3">{usuario.estado}</td>
+                <td className="p-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="rounded bg-[#845b34] px-3 py-1 font-[Montserrat] text-[#e8a96e] transition-all duration-300 hover:scale-105 hover:bg-[#5b3717]"
+                      onClick={() => verDetalle(usuario.id_usuario)}
+                    >
+                      Detalle
+                    </button>
+
+                    <button
+                      className="rounded px-3 py-1 font-[Montserrat] font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-red-700"
+                      style={{
+                        backgroundColor:
+                          usuario.estado === "Activo" ? "#b91c1c" : "#6b7280",
+                      }}
+                      onClick={() => eliminarUsuario(usuario.id_usuario)}
+                      title="Eliminar usuario"
+                    >
+                      🗑
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
 
-      {/* Detalle */}
       {detalle && (
-        <div className="mt-6 p-4 bg-gray-50 shadow rounded text-gray-900 font-[Montserrat]">
-          <h2 className="text-xl font-bold mb-2 font-[Georgia] text-[#845b34]">
-            Detalle de Usuario
-          </h2>
-          <p><strong>Nombre:</strong> {detalle.nombre} {detalle.apellido}</p>
-          <p><strong>Correo:</strong> {detalle.correo}</p>
-          <p><strong>Teléfono:</strong> {detalle.telefono}</p>
-          <p><strong>Rol:</strong> {detalle.rol}</p>
-          <p><strong>Estado:</strong> {detalle.estado}</p>
-          <p><strong>Fecha Registro:</strong> {new Date(detalle.fecha_registro).toLocaleString()}</p>
+        <div className="mt-6 rounded bg-gray-50 p-4 font-[Montserrat] text-gray-900 shadow">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="font-[Georgia] text-xl font-bold text-[#845b34]">
+              Detalle de Usuario
+            </h2>
+
+            <button
+              onClick={abrirEditar}
+              className="rounded bg-[#845b34] px-3 py-1 font-[Montserrat] font-semibold text-[#e8a96e] transition-all duration-300 hover:scale-105 hover:bg-[#5b3717]"
+            >
+            Editar
+            </button>
+          </div>
+
+          <p>
+            <strong>Nombre:</strong> {detalle.nombre} {detalle.apellido}
+          </p>
+          <p>
+            <strong>Correo:</strong> {detalle.correo}
+          </p>
+          <p>
+            <strong>Teléfono:</strong> {detalle.telefono}
+          </p>
+          <p>
+            <strong>Rol:</strong> {detalle.rol}
+          </p>
+          <p>
+            <strong>Estado:</strong> {detalle.estado}
+          </p>
+          <p>
+            <strong>Fecha Registro:</strong>{" "}
+            {new Date(detalle.fecha_registro).toLocaleString()}
+          </p>
 
           {detalle.rol === "Vendedor" && (
-            //se calcula los datos en el UsuarioModel
-            <p><strong>Cantidad de Subastas:</strong> {detalle.cantidad_subastas}</p>
+            <p>
+              <strong>Cantidad de Subastas:</strong> {detalle.cantidad_subastas}
+            </p>
           )}
 
           {detalle.rol === "Cliente" && (
-            //se calcula los datos en el UsuarioModel
-            <p><strong>Cantidad de Pujas:</strong> {detalle.cantidad_pujas}</p>
+            <p>
+              <strong>Cantidad de Pujas:</strong> {detalle.cantidad_pujas}
+            </p>
           )}
         </div>
       )}

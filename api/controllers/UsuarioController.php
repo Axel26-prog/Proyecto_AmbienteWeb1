@@ -5,15 +5,10 @@ class UsuarioController
     {
         try {
             $response = new Response();
-
             $model = new UsuarioModel();
-
             $result = $model->all();
-
             $response->toJSON($result);
-
         } catch (Exception $e) {
-
             handleException($e);
         }
     }
@@ -22,15 +17,10 @@ class UsuarioController
     {
         try {
             $response = new Response();
-
             $model = new UsuarioModel();
-
             $result = $model->get($id);
-
             $response->toJSON($result);
-
         } catch (Exception $e) {
-
             handleException($e);
         }
     }
@@ -39,36 +29,31 @@ class UsuarioController
     {
         try {
             $request = json_decode(file_get_contents("php://input"));
-
             $model = new UsuarioModel();
-
             $result = $model->create($request);
 
             $response = new Response();
-
             $response->toJSON($result);
-
         } catch (Exception $e) {
-
             handleException($e);
         }
     }
 
-    public function update()
+    public function update($id = null)
     {
         try {
             $request = json_decode(file_get_contents("php://input"));
 
-            $model = new UsuarioModel();
+            if ($id !== null) {
+                $request->id_usuario = $id;
+            }
 
+            $model = new UsuarioModel();
             $result = $model->update($request);
 
             $response = new Response();
-
             $response->toJSON($result);
-
         } catch (Exception $e) {
-
             handleException($e);
         }
     }
@@ -77,15 +62,11 @@ class UsuarioController
     {
         try {
             $model = new UsuarioModel();
-
             $result = $model->delete($id);
 
             $response = new Response();
-
             $response->toJSON($result);
-
         } catch (Exception $e) {
-
             handleException($e);
         }
     }
@@ -96,36 +77,27 @@ class UsuarioController
             $request = json_decode(file_get_contents("php://input"));
 
             $model = new UsuarioModel();
-
             $result = $model->login(
                 $request->correo,
                 $request->contrasena
             );
 
             $response = new Response();
-
             $response->toJSON($result);
-
         } catch (Exception $e) {
-
             handleException($e);
         }
     }
 
     public function detalle($id)
-{
-    try {
-        $response = new Response();
-
-        $model = new UsuarioModel();
-
-        $result = $model->getDetalle($id);
-
-        $response->toJSON($result);
-
-    } catch (Exception $e) {
-
-        handleException($e);
+    {
+        try {
+            $response = new Response();
+            $model = new UsuarioModel();
+            $result = $model->getDetalle($id);
+            $response->toJSON($result);
+        } catch (Exception $e) {
+            handleException($e);
+        }
     }
-}
 }
