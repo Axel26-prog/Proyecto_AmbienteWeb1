@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BrandMenuBar from "../components/Layout/BrandMenuBar";
+
 import {
   getSubastas,
   getSubastaDetalle,
@@ -173,12 +175,19 @@ export default function SubastasAdminPage() {
   };
 
   return (
-    <div className="p-6 font-[Montserrat]">
+    <div className="bg-gray-100 min-h-screen font-[Montserrat]">
+        <BrandMenuBar />
+    
+        <div className="p-6">
+      
       {/* Encabezado */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold font-[Georgia] text-[#845b34]">
-          Administración de Subastas
-        </h1>
+        <h1
+            className="text-3xl font-bold text-[#845b34]"
+            style={{ fontFamily: "Georgia" }}
+          >
+            Administración de Subastas
+          </h1>
         <button
           onClick={abrirModalCrear}
           style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
@@ -457,6 +466,7 @@ export default function SubastasAdminPage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
