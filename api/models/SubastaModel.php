@@ -264,4 +264,13 @@ class SubastaModel
 
         return $resultado[0]->total > 0;
     }
+
+      public function cerrarSubasta($idSubasta)
+    {
+        $vSql = "UPDATE subasta
+                 SET id_estado_subasta = 2
+                 WHERE id_subasta = $idSubasta;";
+ 
+        return $this->enlace->executeSQL_DML($vSql);
+    }
 }

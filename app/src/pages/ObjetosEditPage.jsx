@@ -28,14 +28,13 @@ export default function ObjetoEditPage() {
   });
 
   const [errores, setErrores] = useState({});
-  const [toast, setToast] = useState(null); // { tipo: "exito" | "error", mensaje: string }
+  const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     iniciar();
   }, []);
 
-  // Cierra el toast automáticamente después de 3 segundos
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3500);
@@ -74,12 +73,15 @@ export default function ObjetoEditPage() {
         setCategoriasSeleccionadas([...categoriasSeleccionadas, idCat]);
       }
     }
+    // Limpiar error de categorías al seleccionar
+    if (errores.categorias) {
+      setErrores((prev) => ({ ...prev, categorias: "" }));
+    }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setReloj({ ...reloj, [name]: value });
-    // Limpiar error del campo al editar
     if (errores[name]) {
       setErrores({ ...errores, [name]: "" });
     }
@@ -98,6 +100,26 @@ export default function ObjetoEditPage() {
 
     if (!reloj.descripcion || reloj.descripcion.trim().length < 20) {
       nuevosErrores.descripcion = "La descripción debe tener mínimo 20 caracteres.";
+    }
+
+    const anioActual = new Date().getFullYear();
+    const anio = parseInt(reloj.anio_fabricacion);
+    if (!reloj.anio_fabricacion || reloj.anio_fabricacion === "") {
+      nuevosErrores.anio_fabricacion = "El año de fabricación es obligatorio.";
+    } else if (isNaN(anio) || anio < 1800 || anio > anioActual) {
+      nuevosErrores.anio_fabricacion = `El año debe estar entre 1800 y ${anioActual}.`;
+    }
+
+    if (!reloj.id_marca || reloj.id_marca === "") {
+      nuevosErrores.id_marca = "La marca es obligatoria.";
+    }
+
+    if (!reloj.id_condicion || reloj.id_condicion === "") {
+      nuevosErrores.id_condicion = "La condición es obligatoria.";
+    }
+
+    if (categoriasSeleccionadas.length === 0) {
+      nuevosErrores.categorias = "Debe seleccionar al menos una categoría.";
     }
 
     setErrores(nuevosErrores);
@@ -166,9 +188,7 @@ export default function ObjetoEditPage() {
         >
           {/* Modelo */}
           <div className="mb-4">
-            <label className="block mb-1 text-[#845b34] font-semibold">
-              Modelo
-            </label>
+            <label className="block mb-1 text-[#845b34] font-semibold">Modelo</label>
             <input
               type="text"
               name="modelo"
@@ -185,9 +205,7 @@ export default function ObjetoEditPage() {
 
           {/* Descripción */}
           <div className="mb-4">
-            <label className="block mb-1 text-[#845b34] font-semibold">
-              Descripción
-            </label>
+            <label className="block mb-1 text-[#845b34] font-semibold">Descripción</label>
             <textarea
               name="descripcion"
               value={reloj.descripcion || ""}
@@ -206,23 +224,24 @@ export default function ObjetoEditPage() {
 
           {/* Año */}
           <div className="mb-4">
-            <label className="block mb-1 text-[#845b34] font-semibold">
-              Año Fabricación
-            </label>
+            <label className="block mb-1 text-[#845b34] font-semibold">Año Fabricación</label>
             <input
               type="number"
               name="anio_fabricacion"
               value={reloj.anio_fabricacion || ""}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded bg-white text-gray-900"
+              className={`w-full border p-2 rounded bg-white text-gray-900 ${
+                errores.anio_fabricacion ? "border-red-500" : "border-gray-300"
+              }`}
             />
+            {errores.anio_fabricacion && (
+              <p className="mt-1 text-sm text-red-600">{errores.anio_fabricacion}</p>
+            )}
           </div>
 
           {/* Precio */}
           <div className="mb-4">
-            <label className="block mb-1 text-[#845b34] font-semibold">
-              Precio Estimado
-            </label>
+            <label className="block mb-1 text-[#845b34] font-semibold">Precio Estimado</label>
             <input
               type="number"
               name="precio_estimado"
@@ -234,14 +253,14 @@ export default function ObjetoEditPage() {
 
           {/* Marca */}
           <div className="mb-4">
-            <label className="block mb-1 text-[#845b34] font-semibold">
-              Marca
-            </label>
+            <label className="block mb-1 text-[#845b34] font-semibold">Marca</label>
             <select
               name="id_marca"
               value={reloj.id_marca || ""}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded bg-white text-gray-900"
+              className={`w-full border p-2 rounded bg-white text-gray-900 ${
+                errores.id_marca ? "border-red-500" : "border-gray-300"
+              }`}
             >
               <option value="">Seleccione marca</option>
               {marcas.map((m) => (
@@ -250,18 +269,21 @@ export default function ObjetoEditPage() {
                 </option>
               ))}
             </select>
+            {errores.id_marca && (
+              <p className="mt-1 text-sm text-red-600">{errores.id_marca}</p>
+            )}
           </div>
 
           {/* Condición */}
           <div className="mb-4">
-            <label className="block mb-1 text-[#845b34] font-semibold">
-              Condición
-            </label>
+            <label className="block mb-1 text-[#845b34] font-semibold">Condición</label>
             <select
               name="id_condicion"
               value={reloj.id_condicion || ""}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded bg-white text-gray-900"
+              className={`w-full border p-2 rounded bg-white text-gray-900 ${
+                errores.id_condicion ? "border-red-500" : "border-gray-300"
+              }`}
             >
               <option value="">Seleccione condición</option>
               {condiciones.map((c) => (
@@ -270,13 +292,14 @@ export default function ObjetoEditPage() {
                 </option>
               ))}
             </select>
+            {errores.id_condicion && (
+              <p className="mt-1 text-sm text-red-600">{errores.id_condicion}</p>
+            )}
           </div>
 
           {/* Imagen */}
           <div className="mb-4">
-            <label className="block mb-1 text-[#845b34] font-semibold">
-              Imagen
-            </label>
+            <label className="block mb-1 text-[#845b34] font-semibold">Imagen</label>
             <input
               type="file"
               onChange={handleImagen}
@@ -289,19 +312,24 @@ export default function ObjetoEditPage() {
             <label className="block mb-2 text-[#845b34] font-semibold">
               Categorías (máx 2)
             </label>
-            {categorias.map((cat) => (
-              <label
-                key={cat.id_categoria}
-                className="flex items-center gap-2 text-gray-900"
-              >
-                <input
-                  type="checkbox"
-                  checked={categoriasSeleccionadas.includes(cat.id_categoria)}
-                  onChange={() => toggleCategoria(cat.id_categoria)}
-                />
-                {cat.nombre}
-              </label>
-            ))}
+            <div className={errores.categorias ? "border border-red-500 rounded p-2" : ""}>
+              {categorias.map((cat) => (
+                <label
+                  key={cat.id_categoria}
+                  className="flex items-center gap-2 text-gray-900"
+                >
+                  <input
+                    type="checkbox"
+                    checked={categoriasSeleccionadas.includes(cat.id_categoria)}
+                    onChange={() => toggleCategoria(cat.id_categoria)}
+                  />
+                  {cat.nombre}
+                </label>
+              ))}
+            </div>
+            {errores.categorias && (
+              <p className="mt-1 text-sm text-red-600">{errores.categorias}</p>
+            )}
           </div>
 
           {/* Botones */}

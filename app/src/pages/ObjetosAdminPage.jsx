@@ -153,7 +153,8 @@ export default function ObjetosAdminPage() {
     const nuevosErrores = {};
     if (!form.modelo.trim()) nuevosErrores.modelo = "El modelo es requerido.";
     if (!form.descripcion.trim() || form.descripcion.length < 20)
-      nuevosErrores.descripcion = "La descripción debe tener mínimo 20 caracteres.";
+      nuevosErrores.descripcion =
+        "La descripción debe tener mínimo 20 caracteres.";
     if (!form.anio_fabricacion)
       nuevosErrores.anio_fabricacion = "El año es requerido.";
     if (!form.precio_estimado || isNaN(form.precio_estimado))
@@ -161,8 +162,7 @@ export default function ObjetosAdminPage() {
     if (!form.id_marca) nuevosErrores.id_marca = "Seleccione una marca.";
     if (!form.id_condicion)
       nuevosErrores.id_condicion = "Seleccione una condición.";
-    if (!imagen)
-      nuevosErrores.imagen = "Debe seleccionar una imagen.";
+    if (!imagen) nuevosErrores.imagen = "Debe seleccionar una imagen.";
     if (categoriasSeleccionadas.length === 0)
       nuevosErrores.categorias = "Debe seleccionar al menos una categoría.";
     setErrores(nuevosErrores);
@@ -199,7 +199,6 @@ export default function ObjetosAdminPage() {
 
   /* ── Render ── */
   return (
-
     <div className="bg-gray-100 min-h-screen font-[Montserrat]">
       <BrandMenuBar />
 
@@ -236,7 +235,10 @@ export default function ObjetosAdminPage() {
             </thead>
             <tbody className="text-[#5b3717]">
               {relojes.map((reloj) => (
-                <tr key={reloj.id_reloj} className="border-t border-[#845b34]/20">
+                <tr
+                  key={reloj.id_reloj}
+                  className="border-t border-[#845b34]/20"
+                >
                   <td className="p-3">{reloj.modelo}</td>
                   <td className="p-3">{reloj.marca}</td>
                   <td className="p-3">{reloj.condicion}</td>
@@ -262,32 +264,66 @@ export default function ObjetosAdminPage() {
 
                     <div className="flex flex-col">
                       <button
-                        disabled={reloj.estado === "eliminado" || reloj.tiene_subasta_activa == 1}
-                        className={`px-3 py-1 rounded border ${reloj.estado === "eliminado" || reloj.tiene_subasta_activa == 1
+                        disabled={
+                          reloj.estado === "eliminado" ||
+                          reloj.tiene_subasta_activa == 1
+                        }
+                        className={`px-3 py-1 rounded border ${
+                          reloj.estado === "eliminado" ||
+                          reloj.tiene_subasta_activa == 1
                             ? "opacity-50 cursor-not-allowed"
                             : ""
-                          }`}
+                        }`}
                         style={{ borderColor: "#845b34", color: "#845b34" }}
                         onClick={() => {
-                          if (reloj.estado === "eliminado" || reloj.tiene_subasta_activa == 1) return;
+                          if (
+                            reloj.estado === "eliminado" ||
+                            reloj.tiene_subasta_activa == 1
+                          )
+                            return;
                           navigate(`/objeto/${reloj.id_reloj}`);
                         }}
                       >
                         Editar
                       </button>
                       {reloj.tiene_subasta_activa == 1 && (
-                        <p className="text-xs mt-0.5 text-center" style={{ color: "#a07850" }}>
+                        <p
+                          className="text-xs mt-0.5 text-center"
+                          style={{ color: "#a07850" }}
+                        >
                           En subasta activa
                         </p>
                       )}
                     </div>
 
-                    <button
-                      className={`px-3 py-1 rounded text-white ${reloj.estado === "activo" ? "bg-red-500" : "bg-green-600"}`}
-                      onClick={() => cambiarEstado(reloj.id_reloj)}
-                    >
-                      {reloj.estado === "activo" ? "Eliminar" : "Reactivar"}
-                    </button>
+                    <div className="flex flex-col">
+                      <button
+                        disabled={
+                          reloj.estado === "activo" &&
+                          reloj.tiene_subasta_activa == 1
+                        }
+                        className={`px-3 py-1 rounded text-white ${reloj.estado === "activo" ? "bg-red-500" : "bg-green-600"} ${reloj.estado === "activo" && reloj.tiene_subasta_activa == 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+                        onClick={() => {
+                          if (
+                            reloj.estado === "activo" &&
+                            reloj.tiene_subasta_activa == 1
+                          )
+                            return;
+                          cambiarEstado(reloj.id_reloj);
+                        }}
+                      >
+                        {reloj.estado === "activo" ? "Eliminar" : "Reactivar"}
+                      </button>
+                      {reloj.estado === "activo" &&
+                        reloj.tiene_subasta_activa == 1 && (
+                          <p
+                            className="text-xs mt-0.5 text-center"
+                            style={{ color: "#a07850" }}
+                          >
+                            En subasta activa
+                          </p>
+                        )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -342,13 +378,34 @@ export default function ObjetosAdminPage() {
                     )}
 
                     <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                      <p><span className="font-semibold">Modelo:</span> {detalle.modelo}</p>
-                      <p><span className="font-semibold">Marca:</span> {detalle.marca}</p>
-                      <p><span className="font-semibold">Condición:</span> {detalle.condicion}</p>
-                      <p><span className="font-semibold">Año Fabricación:</span> {detalle.anio_fabricacion}</p>
-                      <p><span className="font-semibold">Precio Estimado:</span> ${Number(detalle.precio_estimado).toLocaleString()}</p>
-                      <p><span className="font-semibold">Estado:</span> {detalle.estado}</p>
-                      <p><span className="font-semibold">Fecha Registro:</span> {detalle.fecha_registro}</p>
+                      <p>
+                        <span className="font-semibold">Modelo:</span>{" "}
+                        {detalle.modelo}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Marca:</span>{" "}
+                        {detalle.marca}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Condición:</span>{" "}
+                        {detalle.condicion}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Año Fabricación:</span>{" "}
+                        {detalle.anio_fabricacion}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Precio Estimado:</span>{" "}
+                        ${Number(detalle.precio_estimado).toLocaleString()}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Estado:</span>{" "}
+                        {detalle.estado}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Fecha Registro:</span>{" "}
+                        {detalle.fecha_registro}
+                      </p>
                       <p>
                         <span className="font-semibold">Vendedor:</span>{" "}
                         {detalle.vendedor
@@ -370,7 +427,11 @@ export default function ObjetosAdminPage() {
                             <span
                               key={i}
                               className="px-2 py-1 rounded-full text-xs font-medium"
-                              style={{ backgroundColor: "#fdf3e7", border: "1px solid #e8a96e", color: "#845b34" }}
+                              style={{
+                                backgroundColor: "#fdf3e7",
+                                border: "1px solid #e8a96e",
+                                color: "#845b34",
+                              }}
                             >
                               {cat.nombre}
                             </span>
@@ -379,24 +440,46 @@ export default function ObjetosAdminPage() {
                       </div>
                     )}
 
-                    {detalle.historial_subastas && detalle.historial_subastas.length > 0 && (
-                      <div className="text-sm">
-                        <p className="font-semibold mb-2">Historial de Subastas:</p>
-                        <div className="space-y-2">
-                          {detalle.historial_subastas.map((sub) => (
-                            <div
-                              key={sub.id_subasta}
-                              className="px-3 py-2 rounded text-xs"
-                              style={{ backgroundColor: "#fdf3e7", border: "1px solid #e8a96e" }}
-                            >
-                              <p><span className="font-semibold">Estado:</span> {sub.estado_subasta}</p>
-                              <p><span className="font-semibold">Inicio:</span> {sub.fecha_inicio} — <span className="font-semibold">Fin:</span> {sub.fecha_fin}</p>
-                              <p><span className="font-semibold">Precio inicial:</span> ${Number(sub.precio_inicial).toLocaleString()} | <span className="font-semibold">Pujas:</span> {sub.cantidad_pujas}</p>
-                            </div>
-                          ))}
+                    {detalle.historial_subastas &&
+                      detalle.historial_subastas.length > 0 && (
+                        <div className="text-sm">
+                          <p className="font-semibold mb-2">
+                            Historial de Subastas:
+                          </p>
+                          <div className="space-y-2">
+                            {detalle.historial_subastas.map((sub) => (
+                              <div
+                                key={sub.id_subasta}
+                                className="px-3 py-2 rounded text-xs"
+                                style={{
+                                  backgroundColor: "#fdf3e7",
+                                  border: "1px solid #e8a96e",
+                                }}
+                              >
+                                <p>
+                                  <span className="font-semibold">Estado:</span>{" "}
+                                  {sub.estado_subasta}
+                                </p>
+                                <p>
+                                  <span className="font-semibold">Inicio:</span>{" "}
+                                  {sub.fecha_inicio} —{" "}
+                                  <span className="font-semibold">Fin:</span>{" "}
+                                  {sub.fecha_fin}
+                                </p>
+                                <p>
+                                  <span className="font-semibold">
+                                    Precio inicial:
+                                  </span>{" "}
+                                  ${Number(sub.precio_inicial).toLocaleString()}{" "}
+                                  |{" "}
+                                  <span className="font-semibold">Pujas:</span>{" "}
+                                  {sub.cantidad_pujas}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 )}
               </div>
@@ -456,16 +539,24 @@ export default function ObjetosAdminPage() {
 
                 {/* Modelo */}
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Modelo *</label>
+                  <label className="block text-sm font-semibold mb-1">
+                    Modelo *
+                  </label>
                   <input
                     name="modelo"
                     value={form.modelo}
                     onChange={handleChange}
                     placeholder="Ej: Submariner 116610"
                     className="w-full border rounded px-3 py-2 text-sm focus:outline-none"
-                    style={{ borderColor: errores.modelo ? "#dc2626" : "#845b34" }}
+                    style={{
+                      borderColor: errores.modelo ? "#dc2626" : "#845b34",
+                    }}
                   />
-                  {errores.modelo && <p className="text-red-600 text-xs mt-1">{errores.modelo}</p>}
+                  {errores.modelo && (
+                    <p className="text-red-600 text-xs mt-1">
+                      {errores.modelo}
+                    </p>
+                  )}
                 </div>
 
                 {/* Descripción */}
@@ -480,18 +571,32 @@ export default function ObjetosAdminPage() {
                     rows={3}
                     placeholder="Descripción del objeto..."
                     className="w-full border rounded px-3 py-2 text-sm focus:outline-none resize-none"
-                    style={{ borderColor: errores.descripcion ? "#dc2626" : "#845b34" }}
+                    style={{
+                      borderColor: errores.descripcion ? "#dc2626" : "#845b34",
+                    }}
                   />
-                  <p className="text-xs mt-1" style={{ color: form.descripcion.length < 20 ? "#845b34" : "#16a34a" }}>
+                  <p
+                    className="text-xs mt-1"
+                    style={{
+                      color:
+                        form.descripcion.length < 20 ? "#845b34" : "#16a34a",
+                    }}
+                  >
                     {form.descripcion.length} / 20 caracteres mínimos
                   </p>
-                  {errores.descripcion && <p className="text-red-600 text-xs">{errores.descripcion}</p>}
+                  {errores.descripcion && (
+                    <p className="text-red-600 text-xs">
+                      {errores.descripcion}
+                    </p>
+                  )}
                 </div>
 
                 {/* Año y Precio */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Año de Fabricación *</label>
+                    <label className="block text-sm font-semibold mb-1">
+                      Año de Fabricación *
+                    </label>
                     <input
                       type="number"
                       name="anio_fabricacion"
@@ -501,12 +606,22 @@ export default function ObjetosAdminPage() {
                       min="1800"
                       max={new Date().getFullYear()}
                       className="w-full border rounded px-3 py-2 text-sm focus:outline-none"
-                      style={{ borderColor: errores.anio_fabricacion ? "#dc2626" : "#845b34" }}
+                      style={{
+                        borderColor: errores.anio_fabricacion
+                          ? "#dc2626"
+                          : "#845b34",
+                      }}
                     />
-                    {errores.anio_fabricacion && <p className="text-red-600 text-xs mt-1">{errores.anio_fabricacion}</p>}
+                    {errores.anio_fabricacion && (
+                      <p className="text-red-600 text-xs mt-1">
+                        {errores.anio_fabricacion}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Precio Estimado ($) *</label>
+                    <label className="block text-sm font-semibold mb-1">
+                      Precio Estimado ($) *
+                    </label>
                     <input
                       type="number"
                       name="precio_estimado"
@@ -516,58 +631,92 @@ export default function ObjetosAdminPage() {
                       min="0"
                       step="0.01"
                       className="w-full border rounded px-3 py-2 text-sm focus:outline-none"
-                      style={{ borderColor: errores.precio_estimado ? "#dc2626" : "#845b34" }}
+                      style={{
+                        borderColor: errores.precio_estimado
+                          ? "#dc2626"
+                          : "#845b34",
+                      }}
                     />
-                    {errores.precio_estimado && <p className="text-red-600 text-xs mt-1">{errores.precio_estimado}</p>}
+                    {errores.precio_estimado && (
+                      <p className="text-red-600 text-xs mt-1">
+                        {errores.precio_estimado}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Marca y Condición */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Marca *</label>
+                    <label className="block text-sm font-semibold mb-1">
+                      Marca *
+                    </label>
                     <select
                       name="id_marca"
                       value={form.id_marca}
                       onChange={handleChange}
                       className="w-full border rounded px-3 py-2 text-sm focus:outline-none bg-white"
-                      style={{ borderColor: errores.id_marca ? "#dc2626" : "#845b34" }}
+                      style={{
+                        borderColor: errores.id_marca ? "#dc2626" : "#845b34",
+                      }}
                     >
                       <option value="">-- Seleccione --</option>
                       {marcas.map((m) => (
-                        <option key={m.id_marca} value={m.id_marca}>{m.nombre}</option>
+                        <option key={m.id_marca} value={m.id_marca}>
+                          {m.nombre}
+                        </option>
                       ))}
                     </select>
-                    {errores.id_marca && <p className="text-red-600 text-xs mt-1">{errores.id_marca}</p>}
+                    {errores.id_marca && (
+                      <p className="text-red-600 text-xs mt-1">
+                        {errores.id_marca}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Condición *</label>
+                    <label className="block text-sm font-semibold mb-1">
+                      Condición *
+                    </label>
                     <select
                       name="id_condicion"
                       value={form.id_condicion}
                       onChange={handleChange}
                       className="w-full border rounded px-3 py-2 text-sm focus:outline-none bg-white"
-                      style={{ borderColor: errores.id_condicion ? "#dc2626" : "#845b34" }}
+                      style={{
+                        borderColor: errores.id_condicion
+                          ? "#dc2626"
+                          : "#845b34",
+                      }}
                     >
                       <option value="">-- Seleccione --</option>
                       {condiciones.map((c) => (
-                        <option key={c.id_condicion} value={c.id_condicion}>{c.nombre}</option>
+                        <option key={c.id_condicion} value={c.id_condicion}>
+                          {c.nombre}
+                        </option>
                       ))}
                     </select>
-                    {errores.id_condicion && <p className="text-red-600 text-xs mt-1">{errores.id_condicion}</p>}
+                    {errores.id_condicion && (
+                      <p className="text-red-600 text-xs mt-1">
+                        {errores.id_condicion}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Imagen */}
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Imagen *</label>
+                  <label className="block text-sm font-semibold mb-1">
+                    Imagen *
+                  </label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImagen}
                     className="w-full text-sm text-[#5b3717]"
                     style={{
-                      border: errores.imagen ? "1px solid #dc2626" : "1px solid #845b34",
+                      border: errores.imagen
+                        ? "1px solid #dc2626"
+                        : "1px solid #845b34",
                       borderRadius: "4px",
                       padding: "6px",
                     }}
@@ -578,7 +727,9 @@ export default function ObjetosAdminPage() {
                     </p>
                   )}
                   {errores.imagen && (
-                    <p className="text-red-600 text-xs mt-1">{errores.imagen}</p>
+                    <p className="text-red-600 text-xs mt-1">
+                      {errores.imagen}
+                    </p>
                   )}
                 </div>
 
@@ -587,7 +738,10 @@ export default function ObjetosAdminPage() {
                   <div>
                     <label className="block text-sm font-semibold mb-2">
                       Categorías * (máx. 2)
-                      <span className="ml-2 font-normal text-xs" style={{ color: "#845b34" }}>
+                      <span
+                        className="ml-2 font-normal text-xs"
+                        style={{ color: "#845b34" }}
+                      >
                         {categoriasSeleccionadas.length}/2 seleccionadas
                       </span>
                     </label>
@@ -599,7 +753,9 @@ export default function ObjetosAdminPage() {
                         >
                           <input
                             type="checkbox"
-                            checked={categoriasSeleccionadas.includes(cat.id_categoria)}
+                            checked={categoriasSeleccionadas.includes(
+                              cat.id_categoria,
+                            )}
                             onChange={() => toggleCategoria(cat.id_categoria)}
                             style={{ accentColor: "#845b34" }}
                           />
@@ -608,10 +764,13 @@ export default function ObjetosAdminPage() {
                       ))}
                     </div>
                     {errores.categorias && (
-                      <p className="text-red-600 text-xs mt-1">{errores.categorias}</p>
+                      <p className="text-red-600 text-xs mt-1">
+                        {errores.categorias}
+                      </p>
                     )}
                     <p className="text-xs mt-1" style={{ color: "#845b34" }}>
-                      Si seleccionás una tercera, se reemplaza la primera automáticamente.
+                      Si seleccionás una tercera, se reemplaza la primera
+                      automáticamente.
                     </p>
                   </div>
                 )}
