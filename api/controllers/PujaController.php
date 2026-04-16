@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/../../api/vendor/autoload.php';
 
 use Pusher\Pusher;
 
@@ -11,7 +10,10 @@ class PujaController
             'f286856de296137ede61',
             'dbf92c79617f65f2affb',
             '2139427',
-            ['cluster' => 'us2', 'useTLS' => true]
+            [
+                'cluster' => 'us2',
+                'useTLS' => true
+            ]
         );
     }
 
@@ -37,13 +39,17 @@ class PujaController
 
     public function getBySubasta($idSubasta)
     {
-        $model = new PujaModel();
-        $pujas = $model->getBySubasta($idSubasta) ?? [];
+        try {
+            $model = new PujaModel();
+            $pujas = $model->getBySubasta($idSubasta) ?? [];
 
-        echo json_encode([
-            "success" => true,
-            "data" => $pujas
-        ]);
+            echo json_encode([
+                "success" => true,
+                "data" => $pujas
+            ]);
+        } catch (Exception $e) {
+            $this->error(500, $e->getMessage());
+        }
     }
 
     public function getPujaMasAlta($param)
@@ -58,13 +64,19 @@ class PujaController
 
     public function create()
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-
         try {
             $request = json_decode(file_get_contents("php://input"));
 
-            $pujaModel    = new PujaModel();
+            if (
+                !$request ||
+                !isset($request->id_subasta) ||
+                !isset($request->id_usuario) ||
+                !isset($request->monto)
+            ) {
+                return $this->error(400, "Datos incompletos para registrar la puja");
+            }
+
+            $pujaModel = new PujaModel();
             $subastaModel = new SubastaModel();
 
             $subasta = $subastaModel->get($request->id_subasta);
@@ -73,7 +85,7 @@ class PujaController
                 return $this->error(404, "Subasta no encontrada");
             }
 
-            if (strtolower($subasta->estado) !== 'activa') {
+            if (strtolower($subasta->estado) !== "activa") {
                 return $this->error(400, "La subasta no está activa");
             }
 
@@ -86,23 +98,25 @@ class PujaController
                 return $this->error(400, "La subasta ya cerró");
             }
 
-            if ($subasta->id_usuario == $request->id_usuario) {
+            if ((int)$subasta->id_usuario === (int)$request->id_usuario) {
                 return $this->error(400, "El vendedor no puede pujar en su propia subasta");
             }
 
             $pujaMasAlta = $pujaModel->getPujaMasAlta($request->id_subasta);
-            $montoActual = $pujaMasAlta ? $pujaMasAlta->monto : $subasta->precio_inicial;
+            $montoActual = $pujaMasAlta ? (float)$pujaMasAlta->monto : (float)$subasta->precio_inicial;
+            $montoNuevo = (float)$request->monto;
+            $incrementoMinimo = (float)$subasta->incremento_minimo;
 
-            if ($request->monto <= $montoActual) {
+            if ($montoNuevo <= $montoActual) {
                 return $this->error(
                     400,
                     "El monto debe ser mayor a la puja actual: $" . number_format($montoActual, 2)
                 );
             }
 
-            $minimo = $montoActual + $subasta->incremento_minimo;
+            $minimo = $montoActual + $incrementoMinimo;
 
-            if ($request->monto < $minimo) {
+            if ($montoNuevo < $minimo) {
                 return $this->error(
                     400,
                     "El monto mínimo requerido es: $" . number_format($minimo, 2)
@@ -111,24 +125,35 @@ class PujaController
 
             $pujaModel->create($request);
 
+            $fechaHora = date("Y-m-d H:i:s");
+            $nombreUsuario = isset($request->nombre_usuario) && trim($request->nombre_usuario) !== ""
+                ? $request->nombre_usuario
+                : "Usuario";
+
             $this->getPusher()->trigger(
                 "subasta-{$request->id_subasta}",
                 "nueva-puja",
                 [
-                    "monto"      => $request->monto,
-                    "usuario"    => $request->nombre_usuario ?? "Usuario",
-                    "id_usuario" => $request->id_usuario,
-                    "fecha_hora" => date("Y-m-d H:i:s"),
+                    "monto" => $montoNuevo,
+                    "usuario" => $nombreUsuario,
+                    "id_usuario" => (int)$request->id_usuario,
+                    "fecha_hora" => $fechaHora
                 ]
             );
 
             echo json_encode([
                 "success" => true,
-                "message" => "Puja registrada correctamente"
+                "message" => "Puja registrada correctamente",
+                "data" => [
+                    "id_subasta" => (int)$request->id_subasta,
+                    "id_usuario" => (int)$request->id_usuario,
+                    "usuario" => $nombreUsuario,
+                    "monto" => $montoNuevo,
+                    "fecha_hora" => $fechaHora
+                ]
             ]);
-
         } catch (Exception $e) {
-            $this->error(500, $e->getMessage());
+            return $this->error(500, $e->getMessage());
         }
     }
 
@@ -138,7 +163,9 @@ class PujaController
 
         $ganadorModel = new GanadorModel();
 
-        if ($ganadorModel->existeGanador($idSubasta)) return;
+        if ($ganadorModel->existeGanador($idSubasta)) {
+            return;
+        }
 
         $pujaMasAlta = $pujaModel->getPujaMasAlta($idSubasta);
         $pusher = $this->getPusher();
@@ -152,25 +179,33 @@ class PujaController
 
             $pagoModel = new PagoModel();
             $pago = new stdClass();
-
-            $pago->monto          = $pujaMasAlta->monto;
-            $pago->fecha_pago     = date("Y-m-d H:i:s");
-            $pago->id_ganador     = $idGanador;
-            $pago->id_estado_pago = 1;
+            $pago->monto = $pujaMasAlta->monto;
+            $pago->fecha_pago = date("Y-m-d H:i:s");
+            $pago->id_ganador = $idGanador;
+            $pago->id_estado_pago = 1; // pendiente
             $pago->id_metodo_pago = 1;
 
             $pagoModel->create($pago);
 
-            $pusher->trigger("subasta-{$idSubasta}", "subasta-cerrada", [
-                "ganador"     => $pujaMasAlta->id_usuario,
-                "monto_final" => $pujaMasAlta->monto,
-            ]);
-
+            $pusher->trigger(
+                "subasta-{$idSubasta}",
+                "subasta-cerrada",
+                [
+                    "ganador" => (int)$pujaMasAlta->id_usuario,
+                    "usuario" => $pujaMasAlta->usuario ?? null,
+                    "monto_final" => (float)$pujaMasAlta->monto
+                ]
+            );
         } else {
-            $pusher->trigger("subasta-{$idSubasta}", "subasta-cerrada", [
-                "ganador"     => null,
-                "monto_final" => null,
-            ]);
+            $pusher->trigger(
+                "subasta-{$idSubasta}",
+                "subasta-cerrada",
+                [
+                    "ganador" => null,
+                    "usuario" => null,
+                    "monto_final" => null
+                ]
+            );
         }
     }
 
