@@ -82,10 +82,7 @@ export default function SubastaDetallePage() {
     try {
       setLoading(true);
 
-      const promesas = [
-        getSubastaDetalle(id),
-        getHistorialPujas(id),
-      ];
+      const promesas = [getSubastaDetalle(id), getHistorialPujas(id)];
 
       if (usuarioActualId) {
         promesas.push(getUsuarioDetalle(usuarioActualId));
@@ -109,6 +106,7 @@ export default function SubastaDetallePage() {
         setUsuarioActual({
           id_usuario: Number(usuario.id_usuario),
           nombreCompleto: nombre,
+          rol: usuario.rol || usuario.nombre_rol || "",
         });
       } else {
         setNombreComprador("");
@@ -287,6 +285,15 @@ export default function SubastaDetallePage() {
       return;
     }
 
+    const puedePujar =
+      usuarioActual &&
+      String(usuarioActual.rol).toLowerCase() === "cliente";
+
+    if (!puedePujar) {
+      setError("Solo los usuarios con rol cliente pueden realizar pujas.");
+      return;
+    }
+
     const montoNum = Number(monto);
 
     if (!monto || isNaN(montoNum) || montoNum <= 0) {
@@ -343,6 +350,10 @@ export default function SubastaDetallePage() {
   const minimoRequerido = pujaMasAlta + Number(subasta.incremento_minimo || 0);
   const esGanador =
     ganador && Number(ganador.id_usuario) === Number(usuarioActualId);
+
+  const puedePujar =
+    usuarioActual &&
+    String(usuarioActual.rol).toLowerCase() === "cliente";
 
   return (
     <div className="bg-gray-100 min-h-screen font-[Montserrat]">
@@ -452,18 +463,10 @@ export default function SubastaDetallePage() {
             )}
 
             <div className="space-y-2 text-sm text-[#5b3717]">
-              <p>
-                <strong>Nombre del objeto:</strong> {subasta.modelo}
-              </p>
-              <p>
-                <strong>Descripción:</strong> {subasta.descripcion}
-              </p>
-              <p>
-                <strong>Marca:</strong> {subasta.marca}
-              </p>
-              <p>
-                <strong>Condición:</strong> {subasta.condicion}
-              </p>
+              <p><strong>Nombre del objeto:</strong> {subasta.modelo}</p>
+              <p><strong>Descripción:</strong> {subasta.descripcion}</p>
+              <p><strong>Marca:</strong> {subasta.marca}</p>
+              <p><strong>Condición:</strong> {subasta.condicion}</p>
               <p>
                 <strong>Vendedor:</strong>{" "}
                 {subasta.nombre_vendedor
@@ -519,18 +522,14 @@ export default function SubastaDetallePage() {
               </div>
 
               <div>
-                <p className="text-xs text-gray-400 uppercase">
-                  Incremento Mínimo
-                </p>
+                <p className="text-xs text-gray-400 uppercase">Incremento Mínimo</p>
                 <p className="font-semibold">
                   ${Number(subasta.incremento_minimo).toLocaleString()}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs text-gray-400 uppercase">
-                  Puja Más Alta Actual
-                </p>
+                <p className="text-xs text-gray-400 uppercase">Puja Más Alta Actual</p>
                 <p className="font-semibold text-green-700 text-base">
                   ${Number(pujaMasAlta).toLocaleString()}
                 </p>
@@ -582,6 +581,12 @@ export default function SubastaDetallePage() {
                   <strong>{nombreComprador || "Usuario no seleccionado"}</strong>
                 </p>
 
+                {usuarioActual && !puedePujar && (
+                  <p className="text-red-600 text-xs mb-2">
+                    Solo los usuarios con rol cliente pueden realizar pujas.
+                  </p>
+                )}
+
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -599,7 +604,7 @@ export default function SubastaDetallePage() {
 
                   <button
                     onClick={handlePujar}
-                    disabled={enviando || !usuarioActualId}
+                    disabled={enviando || !usuarioActualId || !puedePujar}
                     className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
                     style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
                   >
@@ -626,9 +631,7 @@ export default function SubastaDetallePage() {
               <thead>
                 <tr style={{ backgroundColor: "#845b34" }}>
                   <th className="p-3 text-left text-[#e8a96e]">Usuario</th>
-                  <th className="p-3 text-left text-[#e8a96e]">
-                    Monto Ofertado
-                  </th>
+                  <th className="p-3 text-left text-[#e8a96e]">Monto Ofertado</th>
                   <th className="p-3 text-left text-[#e8a96e]">Fecha y Hora</th>
                 </tr>
               </thead>

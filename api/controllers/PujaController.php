@@ -78,6 +78,7 @@ class PujaController
 
             $pujaModel = new PujaModel();
             $subastaModel = new SubastaModel();
+            $usuarioModel = new UsuarioModel();
 
             $subasta = $subastaModel->get($request->id_subasta);
 
@@ -85,15 +86,20 @@ class PujaController
                 return $this->error(404, "Subasta no encontrada");
             }
 
+            $usuario = $usuarioModel->get($request->id_usuario);
+
+            if (!$usuario) {
+                return $this->error(404, "Usuario no encontrado");
+            }
+
+            // validar rol cliente
+            if (strtolower($usuario->rol) !== "cliente") {
+                return $this->error(403, "Solo los usuarios con rol cliente pueden realizar pujas");
+            }
+
             if (strtolower($subasta->estado) !== "activa") {
                 return $this->error(400, "La subasta no está activa");
             }
-
-            $ahoraServidor = new DateTime();
-            $fechaFinSubasta = new DateTime($subasta->fecha_fin);
-
-            error_log("AHORA SERVIDOR: " . $ahoraServidor->format('Y-m-d H:i:s'));
-            error_log("FECHA FIN SUBASTA: " . $fechaFinSubasta->format('Y-m-d H:i:s'));
 
             if (new DateTime() >= new DateTime($subasta->fecha_fin)) {
                 $this->cerrarSubastaYDeterminarGanador(
