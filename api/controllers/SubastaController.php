@@ -41,7 +41,6 @@ class SubastaController
 
             $result = $model->create($request);
             echo json_encode(["success" => true, "id_subasta" => $result]);
-
         } catch (Exception $e) {
             handleException($e);
         }
@@ -90,7 +89,6 @@ class SubastaController
 
             $model->cancelar($id);
             echo json_encode(["success" => true, "message" => "Subasta cancelada"]);
-
         } catch (Exception $e) {
             handleException($e);
         }
@@ -135,6 +133,105 @@ class SubastaController
             $model = new SubastaModel();
             $result = $model->getDetalleSubasta($id);
             echo json_encode($result);
+        } catch (Exception $e) {
+            handleException($e);
+        }
+    }
+
+    //para cerrar subastas
+    public function cerrar($id)
+    {
+        try {
+            $subastaModel = new SubastaModel();
+            $pujaModel = new PujaModel();
+            $ganadorModel = new GanadorModel();
+            $pagoModel = new PagoModel();
+
+            $subasta = $subastaModel->get($id);
+
+            if (!$subasta) {
+                http_response_code(404);
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Subasta no encontrada"
+                ]);
+                return;
+            }
+
+            // Si ya existe ganador, no volver a crearlo
+            if ($ganadorModel->existeGanador($id)) {
+                echo json_encode([
+                    "success" => true,
+                    "message" => "La subasta ya fue cerrada anteriormente"
+                ]);
+                return;
+            }
+
+            // Cerrar subasta en BD
+            $subastaModel->cerrarSubasta($id);
+
+            $pujaMasAlta = $pujaModel->getPujaMasAlta($id);
+
+            $pusher = new \Pusher\Pusher(
+                'f286856de296137ede61',
+                'dbf92c79617f65f2affb',
+                '2139427',
+                [
+                    'cluster' => 'us2',
+                    'useTLS' => true
+                ]
+            );
+
+            if ($pujaMasAlta) {
+                $idGanador = $ganadorModel->create(
+                    $id,
+                    $pujaMasAlta->id_usuario,
+                    $pujaMasAlta->monto
+                );
+
+                $pago = new stdClass();
+                $pago->monto = $pujaMasAlta->monto;
+                $pago->fecha_pago = date("Y-m-d H:i:s");
+                $pago->id_ganador = $idGanador;
+                $pago->id_estado_pago = 1; // pendiente
+                $pago->id_metodo_pago = 1;
+
+                $pagoModel->create($pago);
+
+                $pusher->trigger(
+                    "subasta-{$id}",
+                    "subasta-cerrada",
+                    [
+                        "ganador" => (int)$pujaMasAlta->id_usuario,
+                        "usuario" => $pujaMasAlta->usuario ?? null,
+                        "monto_final" => (float)$pujaMasAlta->monto
+                    ]
+                );
+
+                echo json_encode([
+                    "success" => true,
+                    "message" => "Subasta cerrada y ganador determinado",
+                    "data" => [
+                        "id_usuario" => (int)$pujaMasAlta->id_usuario,
+                        "monto_final" => (float)$pujaMasAlta->monto
+                    ]
+                ]);
+            } else {
+                $pusher->trigger(
+                    "subasta-{$id}",
+                    "subasta-cerrada",
+                    [
+                        "ganador" => null,
+                        "usuario" => null,
+                        "monto_final" => null
+                    ]
+                );
+
+                echo json_encode([
+                    "success" => true,
+                    "message" => "Subasta cerrada sin ofertas"
+                ]);
+            }
         } catch (Exception $e) {
             handleException($e);
         }

@@ -70,6 +70,22 @@ export default function SubastaDetallePage() {
     }, 6000);
   };
 
+  const cerrarSubastaEnBackend = async () => {
+    try {
+    const res = await fetch(`${API_URL}/subasta/cerrar/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json();
+    console.log("respuesta cerrarSubastaEnBackend:", data);
+
+    await cargarGanadorYPago();
+  } catch (e) {
+    console.error("Error cerrando subasta en backend:", e);
+  }
+  };
+
   const cargar = async () => {
     try {
       setLoading(true);
@@ -121,7 +137,7 @@ export default function SubastaDetallePage() {
         if (ahora >= fin || detalle.estado?.toLowerCase() === "cerrada") {
           setSubastaCerrada(true);
           setTiempoRestante("Subasta cerrada");
-          await cargarGanadorYPago();
+          await cerrarSubastaEnBackend();
         } else {
           setSubastaCerrada(false);
           iniciarContador(detalle.fecha_fin);
@@ -167,7 +183,7 @@ export default function SubastaDetallePage() {
     console.log("fechaFin original:", fechaFin);
     console.log("fecha parseada:", new Date(fechaFin.replace(" ", "T")));
     console.log("ahora navegador:", new Date());
-    
+
     if (timerRef.current) clearInterval(timerRef.current);
 
     const calcular = () => {
@@ -177,7 +193,7 @@ export default function SubastaDetallePage() {
         setTiempoRestante("Subasta cerrada");
         setSubastaCerrada(true);
         clearInterval(timerRef.current);
-        cargarGanadorYPago();
+        cerrarSubastaEnBackend();
         return;
       }
 
