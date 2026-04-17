@@ -42,4 +42,14 @@ class GanadorModel
         $resultado = $this->enlace->ExecuteSQL($vSql);
         return $resultado[0]->total > 0;
     }
+
+    public function get($idGanador)
+    {
+        $vSql = "SELECT *
+             FROM ganador
+             WHERE id_ganador = $idGanador;";
+
+        $resultado = $this->enlace->ExecuteSQL($vSql);
+        return !empty($resultado) ? $resultado[0] : null;
+    }
 }

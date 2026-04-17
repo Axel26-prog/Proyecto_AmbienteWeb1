@@ -5,8 +5,7 @@ import {
   getSubastaDetalle,
   getHistorialPujas,
 } from "../services/SubastaServices";
-import { getUsuarioActualId } from "../utils/usuarioActual";
-
+import { getUsuarioActualId, armarRutaConUsuario } from "../utils/usuarioActual";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,8 +13,6 @@ const API_URL = import.meta.env.VITE_API_URL;
   http://localhost:5173/subasta/1?usuario=7  Luis Ramirez
   http://localhost:5173/subasta/1?usuario=8  Sofia Martines
 */
-
-
 
 export default function SubastaDetallePage() {
   const { id } = useParams();
@@ -36,7 +33,6 @@ export default function SubastaDetallePage() {
   const [subastaCerrada, setSubastaCerrada] = useState(false);
   const [tiempoRestante, setTiempoRestante] = useState("");
   const [pago, setPago] = useState(null);
-  const [confirmando, setConfirmando] = useState(false);
   const [nombreComprador, setNombreComprador] = useState("");
   const [usuarioActual, setUsuarioActual] = useState(null);
 
@@ -72,18 +68,18 @@ export default function SubastaDetallePage() {
 
   const cerrarSubastaEnBackend = async () => {
     try {
-    const res = await fetch(`${API_URL}/subasta/cerrar/${id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
+      const res = await fetch(`${API_URL}/subasta/cerrar/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
 
-    const data = await res.json();
-    console.log("respuesta cerrarSubastaEnBackend:", data);
+      const data = await res.json();
+      console.log("respuesta cerrarSubastaEnBackend:", data);
 
-    await cargarGanadorYPago();
-  } catch (e) {
-    console.error("Error cerrando subasta en backend:", e);
-  }
+      await cargarGanadorYPago();
+    } catch (e) {
+      console.error("Error cerrando subasta en backend:", e);
+    }
   };
 
   const cargar = async () => {
@@ -180,10 +176,6 @@ export default function SubastaDetallePage() {
   };
 
   const iniciarContador = (fechaFin) => {
-    console.log("fechaFin original:", fechaFin);
-    console.log("fecha parseada:", new Date(fechaFin.replace(" ", "T")));
-    console.log("ahora navegador:", new Date());
-
     if (timerRef.current) clearInterval(timerRef.current);
 
     const calcular = () => {
@@ -262,7 +254,6 @@ export default function SubastaDetallePage() {
       await cargarGanadorYPago();
     });
 
-    /* Requiere que el backend emita este evento al confirmar el pago */
     channelRef.current.bind("pago-confirmado", (data) => {
       setPago((prev) => {
         if (!prev) return prev;
@@ -320,36 +311,6 @@ export default function SubastaDetallePage() {
     }
   };
 
-  const handleConfirmarPago = async () => {
-    if (!pago) return;
-
-    setConfirmando(true);
-
-    try {
-      const res = await fetch(`${API_URL}/pago`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...pago,
-          id_estado_pago: 2,
-        }),
-      });
-
-      const data = await res.json();
-
-      setPago((prev) => ({
-        ...prev,
-        id_estado_pago: 2,
-        estado_pago: "confirmado",
-        fecha_pago: data?.data?.fecha_pago || prev?.fecha_pago || new Date().toISOString(),
-      }));
-    } catch (e) {
-      console.error("Error al confirmar pago:", e);
-    } finally {
-      setConfirmando(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="p-6 text-[#845b34] font-[Montserrat]">
@@ -370,13 +331,6 @@ export default function SubastaDetallePage() {
   const minimoRequerido = pujaMasAlta + Number(subasta.incremento_minimo || 0);
   const esGanador =
     ganador && Number(ganador.id_usuario) === Number(usuarioActualId);
-
-  const debePagarForzado =
-    subastaCerrada &&
-    ganador &&
-    pago &&
-    Number(pago.id_estado_pago) !== 2 &&
-    esGanador;
 
   return (
     <div className="bg-gray-100 min-h-screen font-[Montserrat]">
@@ -429,6 +383,26 @@ export default function SubastaDetallePage() {
                 Esta subasta finalizó sin ofertas.
               </p>
             )}
+          </div>
+        )}
+
+        {subastaCerrada && ganador && pago && esGanador && Number(pago.id_estado_pago) !== 2 && (
+          <div
+            className="mb-6 px-4 py-4 rounded"
+            style={{ backgroundColor: "#fff7ed", border: "1px solid #e8a96e" }}
+          >
+            <p className="text-sm text-[#845b34] mb-3">
+              Ganaste esta subasta y tienes un pago pendiente por{" "}
+              <strong>${Number(pago.monto).toLocaleString()}</strong>.
+            </p>
+
+            <button
+              onClick={() => navigate(armarRutaConUsuario("/pago"))}
+              className="px-4 py-2 rounded text-sm font-semibold"
+              style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
+            >
+              Ir a Pagar
+            </button>
           </div>
         )}
 
@@ -657,114 +631,7 @@ export default function SubastaDetallePage() {
             </table>
           </div>
         </div>
-
-        {subastaCerrada && ganador && pago && (
-          <div className="mt-6 bg-white rounded-lg shadow p-6">
-            <h3
-              className="text-xl font-bold mb-4 text-[#845b34]"
-              style={{ fontFamily: "Georgia" }}
-            >
-              Proceso de Pago
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4 text-sm text-[#5b3717] mb-4">
-              <div>
-                <p className="text-xs text-gray-400 uppercase">Ganador</p>
-                <p className="font-semibold">{ganador.nombre_ganador}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-gray-400 uppercase">Monto a Pagar</p>
-                <p className="font-semibold text-green-700">
-                  ${Number(pago.monto).toLocaleString()}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-gray-400 uppercase">Fecha de Pago</p>
-                <p className="font-semibold">
-                  {pago.fecha_pago || "Pendiente"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-gray-400 uppercase">
-                  Método de Pago
-                </p>
-                <p className="font-semibold">{pago.metodo_pago || "-"}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-gray-400 uppercase">
-                  Estado del Pago
-                </p>
-                <span
-                  className="px-2 py-1 rounded-full text-xs font-semibold"
-                  style={{
-                    backgroundColor:
-                      Number(pago.id_estado_pago) === 2 ? "#dcfce7" : "#fef9c3",
-                    color:
-                      Number(pago.id_estado_pago) === 2 ? "#16a34a" : "#ca8a04",
-                  }}
-                >
-                  {Number(pago.id_estado_pago) === 2 ? "Confirmado" : "Pendiente"}
-                </span>
-              </div>
-            </div>
-
-            {Number(pago.id_estado_pago) !== 2 && esGanador && (
-              <button
-                onClick={handleConfirmarPago}
-                disabled={confirmando}
-                className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
-                style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
-              >
-                {confirmando ? "Confirmando..." : "Confirmar Pago"}
-              </button>
-            )}
-
-            {Number(pago.id_estado_pago) === 2 && (
-              <p className="text-green-700 text-sm font-semibold mt-2">
-                ✓ Pago confirmado correctamente
-              </p>
-            )}
-          </div>
-        )}
       </div>
-
-      {debePagarForzado && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-lg font-bold mb-2 text-[#845b34]">
-              Pago pendiente obligatorio
-            </h2>
-
-            <p className="mb-4 text-sm text-[#5b3717]">
-              Ganaste la subasta como <strong>{nombreComprador}</strong>. Debes
-              confirmar el pago para continuar usando esta pantalla.
-            </p>
-
-            <div className="mb-4 text-sm text-[#5b3717]">
-              <p>
-                <strong>Monto:</strong> ${Number(pago?.monto || 0).toLocaleString()}
-              </p>
-              <p>
-                <strong>Estado:</strong>{" "}
-                {Number(pago?.id_estado_pago) === 2 ? "Confirmado" : "Pendiente"}
-              </p>
-            </div>
-
-            <button
-              onClick={handleConfirmarPago}
-              disabled={confirmando}
-              className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
-              style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
-            >
-              {confirmando ? "Confirmando..." : "Confirmar Pago"}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
