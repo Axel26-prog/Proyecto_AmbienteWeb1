@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import BrandMenuBar from "../components/Layout/BrandMenuBar";
 import { getUsuarioActualId, armarRutaConUsuario } from "../utils/usuarioActual";
 import { getPagosByUsuario, confirmarPago } from "../services/PagoService";
+import { getUsuarioDetalle } from "../services/UsuarioServices";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -10,12 +11,49 @@ export default function PagoPage() {
     const navigate = useNavigate();
     const usuarioActualId = getUsuarioActualId();
 
+    const [nombreUsuarioActual, setNombreUsuarioActual] = useState("");
     const [pagos, setPagos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [confirmandoId, setConfirmandoId] = useState(null);
 
     useEffect(() => {
+        let alive = true;
+
+        const cargarUsuarioActual = async () => {
+            try {
+                if (!usuarioActualId) {
+                    setNombreUsuarioActual("");
+                    return;
+                }
+
+                const data = await getUsuarioDetalle(usuarioActualId);
+                const usuario = data?.data || data;
+
+                if (!alive) return;
+
+                if (usuario?.nombre) {
+                    setNombreUsuarioActual(
+                        `${usuario.nombre} ${usuario.apellido || ""}`.trim()
+                    );
+                } else {
+                    setNombreUsuarioActual("");
+                }
+            } catch (e) {
+                if (alive) setNombreUsuarioActual("");
+            }
+        };
+
+        cargarUsuarioActual();
+
+        return () => {
+            alive = false;
+        };
+    }, [usuarioActualId]);
+
+    useEffect(() => {
+        let alive = true;
+
         const cargarPagos = async () => {
             try {
                 setLoading(true);
@@ -27,15 +65,22 @@ export default function PagoPage() {
                 }
 
                 const data = await getPagosByUsuario(usuarioActualId);
+
+                if (!alive) return;
                 setPagos(Array.isArray(data) ? data : []);
             } catch (e) {
+                if (!alive) return;
                 setError(e.message || "Error al cargar pagos");
             } finally {
-                setLoading(false);
+                if (alive) setLoading(false);
             }
         };
 
         cargarPagos();
+
+        return () => {
+            alive = false;
+        };
     }, [usuarioActualId]);
 
     const handleConfirmarPago = async (pago) => {
@@ -96,7 +141,8 @@ export default function PagoPage() {
                         color: "#845b34",
                     }}
                 >
-                    Usuario actual: <strong>ID {usuarioActualId ?? "-"}</strong>
+                    Usuario actual:{" "}
+                    <strong>{nombreUsuarioActual || "Sin usuario seleccionado"}</strong>
                 </div>
 
                 {loading && <p className="text-[#845b34]">Cargando pagos...</p>}
@@ -135,7 +181,10 @@ export default function PagoPage() {
                                             : null;
 
                                         return (
-                                            <div key={pago.id_pago} className="bg-white rounded-lg shadow p-5">
+                                            <div
+                                                key={pago.id_pago}
+                                                className="bg-white rounded-lg shadow p-5"
+                                            >
                                                 {imgUrl && (
                                                     <div className="h-52 bg-white flex items-center justify-center overflow-hidden mb-4 rounded border border-[#e8a96e]">
                                                         <img
@@ -153,12 +202,17 @@ export default function PagoPage() {
                                                     {pago.modelo}
                                                 </h3>
 
-                                                <div className="space-y-1 text-sm text-[#5b3717] mb-4">
+                                                <div className="space-y-2 text-sm text-[#5b3717] mb-4">
                                                     <p><strong>Marca:</strong> {pago.marca}</p>
                                                     <p><strong>Subasta:</strong> #{pago.id_subasta}</p>
                                                     <p><strong>Monto:</strong> ${Number(pago.monto).toLocaleString()}</p>
                                                     <p><strong>Método:</strong> {pago.metodo_pago}</p>
-                                                    <p><strong>Estado:</strong> Pendiente</p>
+                                                    <p>
+                                                        <strong>Estado:</strong>{" "}
+                                                        <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-600">
+                                                            Pendiente de pago
+                                                        </span>
+                                                    </p>
                                                     <p><strong>Fecha asignación:</strong> {pago.fecha_asignacion}</p>
                                                 </div>
 
@@ -206,7 +260,10 @@ export default function PagoPage() {
                             ) : (
                                 <div className="grid gap-6 md:grid-cols-2">
                                     {pagosConfirmados.map((pago) => (
-                                        <div key={pago.id_pago} className="bg-white rounded-lg shadow p-5">
+                                        <div
+                                            key={pago.id_pago}
+                                            className="bg-white rounded-lg shadow p-5"
+                                        >
                                             <h3
                                                 className="text-xl font-bold mb-2 text-[#845b34]"
                                                 style={{ fontFamily: "Georgia" }}
@@ -214,11 +271,16 @@ export default function PagoPage() {
                                                 {pago.modelo}
                                             </h3>
 
-                                            <div className="space-y-1 text-sm text-[#5b3717]">
+                                            <div className="space-y-2 text-sm text-[#5b3717]">
                                                 <p><strong>Subasta:</strong> #{pago.id_subasta}</p>
                                                 <p><strong>Monto:</strong> ${Number(pago.monto).toLocaleString()}</p>
                                                 <p><strong>Método:</strong> {pago.metodo_pago}</p>
-                                                <p><strong>Estado:</strong> Confirmado</p>
+                                                <p>
+                                                    <strong>Estado:</strong>{" "}
+                                                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-600">
+                                                        Confirmado
+                                                    </span>
+                                                </p>
                                                 <p><strong>Fecha pago:</strong> {pago.fecha_pago}</p>
                                             </div>
                                         </div>

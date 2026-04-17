@@ -6,13 +6,9 @@ import {
   getHistorialPujas,
 } from "../services/SubastaServices";
 import { getUsuarioActualId, armarRutaConUsuario } from "../utils/usuarioActual";
+import { getUsuarioDetalle } from "../services/UsuarioServices";
 
 const API_URL = import.meta.env.VITE_API_URL;
-
-/* Usuario lógico interno de prueba por ventana:
-  http://localhost:5173/subasta/1?usuario=7  Luis Ramirez
-  http://localhost:5173/subasta/1?usuario=8  Sofia Martines
-*/
 
 export default function SubastaDetallePage() {
   const { id } = useParams();
@@ -58,9 +54,11 @@ export default function SubastaDetallePage() {
 
   const mostrarNotificacionTemporal = (mensaje) => {
     setNotificacion(mensaje);
+
     if (notificacionTimeoutRef.current) {
       clearTimeout(notificacionTimeoutRef.current);
     }
+
     notificacionTimeoutRef.current = setTimeout(() => {
       setNotificacion("");
     }, 6000);
@@ -73,9 +71,7 @@ export default function SubastaDetallePage() {
         headers: { "Content-Type": "application/json" },
       });
 
-      const data = await res.json();
-      console.log("respuesta cerrarSubastaEnBackend:", data);
-
+      await res.json();
       await cargarGanadorYPago();
     } catch (e) {
       console.error("Error cerrando subasta en backend:", e);
@@ -86,27 +82,38 @@ export default function SubastaDetallePage() {
     try {
       setLoading(true);
 
-      const [detalleRes, historialRes, usuarioRes] = await Promise.all([
+      const promesas = [
         getSubastaDetalle(id),
         getHistorialPujas(id),
-        fetch(`${API_URL}/usuario/${usuarioActualId}`).then((r) => r.json()),
-      ]);
+      ];
+
+      if (usuarioActualId) {
+        promesas.push(getUsuarioDetalle(usuarioActualId));
+      } else {
+        promesas.push(Promise.resolve(null));
+      }
+
+      const [detalleRes, historialRes, usuarioRes] = await Promise.all(promesas);
 
       const detalle = detalleRes || null;
       const historial = Array.isArray(historialRes?.data)
         ? [...historialRes.data].sort((a, b) => Number(b.monto) - Number(a.monto))
         : [];
 
-      const usuario = usuarioRes?.data;
+      const usuario = usuarioRes?.data || usuarioRes;
 
       if (usuario && usuario.nombre) {
-        const nombre = `${usuario.nombre} ${usuario.apellido}`;
+        const nombre = `${usuario.nombre} ${usuario.apellido || ""}`.trim();
         setNombreComprador(nombre);
         nombreRef.current = nombre;
         setUsuarioActual({
           id_usuario: Number(usuario.id_usuario),
           nombreCompleto: nombre,
         });
+      } else {
+        setNombreComprador("");
+        nombreRef.current = "";
+        setUsuarioActual(null);
       }
 
       setSubasta(detalle);
@@ -275,6 +282,11 @@ export default function SubastaDetallePage() {
   const handlePujar = async () => {
     setError("");
 
+    if (!usuarioActualId) {
+      setError("Debe seleccionar un usuario antes de pujar.");
+      return;
+    }
+
     const montoNum = Number(monto);
 
     if (!monto || isNaN(montoNum) || montoNum <= 0) {
@@ -345,13 +357,17 @@ export default function SubastaDetallePage() {
 
         <div
           className="mb-4 px-4 py-3 rounded text-sm"
-          style={{ backgroundColor: "#fdf3e7", border: "1px solid #e8a96e", color: "#845b34" }}
+          style={{
+            backgroundColor: "#fdf3e7",
+            border: "1px solid #e8a96e",
+            color: "#845b34",
+          }}
         >
-          Usuario actual de prueba:{" "}
+          Usuario actual:{" "}
           <strong>
-            {usuarioActual?.nombreCompleto || nombreComprador || `Usuario ${usuarioActualId}`}
-          </strong>{" "}
-          (ID: {usuarioActualId})
+            {usuarioActual?.nombreCompleto || "Sin usuario seleccionado"}
+          </strong>
+          {usuarioActualId ? ` (ID: ${usuarioActualId})` : ""}
         </div>
 
         {notificacion && (
@@ -386,25 +402,32 @@ export default function SubastaDetallePage() {
           </div>
         )}
 
-        {subastaCerrada && ganador && pago && esGanador && Number(pago.id_estado_pago) !== 2 && (
-          <div
-            className="mb-6 px-4 py-4 rounded"
-            style={{ backgroundColor: "#fff7ed", border: "1px solid #e8a96e" }}
-          >
-            <p className="text-sm text-[#845b34] mb-3">
-              Ganaste esta subasta y tienes un pago pendiente por{" "}
-              <strong>${Number(pago.monto).toLocaleString()}</strong>.
-            </p>
-
-            <button
-              onClick={() => navigate(armarRutaConUsuario("/pago"))}
-              className="px-4 py-2 rounded text-sm font-semibold"
-              style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
+        {subastaCerrada &&
+          ganador &&
+          pago &&
+          esGanador &&
+          Number(pago.id_estado_pago) !== 2 && (
+            <div
+              className="mb-6 px-4 py-4 rounded"
+              style={{
+                backgroundColor: "#fff7ed",
+                border: "1px solid #e8a96e",
+              }}
             >
-              Ir a Pagar
-            </button>
-          </div>
-        )}
+              <p className="text-sm text-[#845b34] mb-3">
+                Ganaste esta subasta y tienes un pago pendiente por{" "}
+                <strong>${Number(pago.monto).toLocaleString()}</strong>.
+              </p>
+
+              <button
+                onClick={() => navigate(armarRutaConUsuario("/pago"))}
+                className="px-4 py-2 rounded text-sm font-semibold"
+                style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
+              >
+                Ir a Pagar
+              </button>
+            </div>
+          )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="bg-white rounded-lg shadow p-6">
@@ -555,7 +578,8 @@ export default function SubastaDetallePage() {
                 </p>
 
                 <p className="text-xs mb-2" style={{ color: "#845b34" }}>
-                  Pujando como: <strong>{nombreComprador}</strong>
+                  Pujando como:{" "}
+                  <strong>{nombreComprador || "Usuario no seleccionado"}</strong>
                 </p>
 
                 <div className="flex gap-2">
@@ -575,7 +599,7 @@ export default function SubastaDetallePage() {
 
                   <button
                     onClick={handlePujar}
-                    disabled={enviando}
+                    disabled={enviando || !usuarioActualId}
                     className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
                     style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
                   >

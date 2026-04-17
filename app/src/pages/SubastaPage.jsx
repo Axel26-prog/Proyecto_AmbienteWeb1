@@ -6,11 +6,13 @@ import {
 import BrandMenuBar from "../components/Layout/BrandMenuBar";
 import { useNavigate } from "react-router-dom";
 import { getUsuarioActualId, armarRutaConUsuario } from "../utils/usuarioActual";
+import { getUsuarioDetalle } from "../services/UsuarioServices";
 
 export default function SubastaPage({ tipo = "activas" }) {
   const [subastas, setSubastas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [nombreUsuarioActual, setNombreUsuarioActual] = useState("");
   const mostrarFinalizadas = tipo === "inactivas";
   const navigate = useNavigate();
   const usuarioActualId = getUsuarioActualId();
@@ -50,6 +52,40 @@ export default function SubastaPage({ tipo = "activas" }) {
     };
   }, [mostrarFinalizadas]);
 
+  useEffect(() => {
+    let alive = true;
+
+    const cargarUsuarioActual = async () => {
+      try {
+        if (!usuarioActualId) {
+          setNombreUsuarioActual("");
+          return;
+        }
+
+        const data = await getUsuarioDetalle(usuarioActualId);
+        const usuario = data?.data || data;
+
+        if (!alive) return;
+
+        if (usuario?.nombre) {
+          setNombreUsuarioActual(
+            `${usuario.nombre} ${usuario.apellido || ""}`.trim()
+          );
+        } else {
+          setNombreUsuarioActual("");
+        }
+      } catch (e) {
+        if (alive) setNombreUsuarioActual("");
+      }
+    };
+
+    cargarUsuarioActual();
+
+    return () => {
+      alive = false;
+    };
+  }, [usuarioActualId]);
+
   return (
     <div className="bg-gray-100 min-h-screen font-[Montserrat]">
       <BrandMenuBar />
@@ -80,7 +116,8 @@ export default function SubastaPage({ tipo = "activas" }) {
             color: "#845b34",
           }}
         >
-          Usuario actual: <strong>{usuarioActualId ?? "No definido"}</strong>
+          Usuario actual:{" "}
+          <strong>{nombreUsuarioActual || "Sin usuario seleccionado"}</strong>
         </div>
 
         {loading && (
@@ -177,7 +214,9 @@ export default function SubastaPage({ tipo = "activas" }) {
                       </p>
 
                       <p className="text-base mb-3">
-                        <strong style={{ fontFamily: "Georgia" }}>Estado:</strong>{" "}
+                        <strong style={{ fontFamily: "Georgia" }}>
+                          Estado:
+                        </strong>{" "}
                         <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                           {s.estado_final || "Finalizada"}
                         </span>
