@@ -89,6 +89,12 @@ class PujaController
                 return $this->error(400, "La subasta no está activa");
             }
 
+            $ahoraServidor = new DateTime();
+            $fechaFinSubasta = new DateTime($subasta->fecha_fin);
+
+            error_log("AHORA SERVIDOR: " . $ahoraServidor->format('Y-m-d H:i:s'));
+            error_log("FECHA FIN SUBASTA: " . $fechaFinSubasta->format('Y-m-d H:i:s'));
+
             if (new DateTime() >= new DateTime($subasta->fecha_fin)) {
                 $this->cerrarSubastaYDeterminarGanador(
                     $request->id_subasta,

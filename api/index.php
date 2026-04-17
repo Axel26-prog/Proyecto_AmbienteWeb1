@@ -1,6 +1,7 @@
 <?php
 // Composer autoloader
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
+date_default_timezone_set('America/Costa_Rica');
 /*Encabezada de las solicitudes*/
 /*CORS*/
 header("Access-Control-Allow-Origin: * ");

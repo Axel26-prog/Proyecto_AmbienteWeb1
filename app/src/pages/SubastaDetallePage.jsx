@@ -45,6 +45,7 @@ export default function SubastaDetallePage() {
   const timerRef = useRef(null);
   const nombreRef = useRef("");
   const notificacionTimeoutRef = useRef(null);
+  const usuarioLiderRef = useRef(null);
 
   useEffect(() => {
     cargar();
@@ -103,11 +104,14 @@ export default function SubastaDetallePage() {
         const maxPuja = historial.reduce((max, p) =>
           Number(p.monto) > Number(max.monto) ? p : max
         );
+
         setPujaMasAlta(Number(maxPuja.monto));
         setUsuarioLider(maxPuja.usuario);
+        usuarioLiderRef.current = Number(maxPuja.id_usuario);
       } else if (detalle) {
         setPujaMasAlta(Number(detalle.precio_inicial));
         setUsuarioLider(null);
+        usuarioLiderRef.current = null;
       }
 
       if (detalle) {
@@ -160,6 +164,10 @@ export default function SubastaDetallePage() {
   };
 
   const iniciarContador = (fechaFin) => {
+    console.log("fechaFin original:", fechaFin);
+    console.log("fecha parseada:", new Date(fechaFin.replace(" ", "T")));
+    console.log("ahora navegador:", new Date());
+    
     if (timerRef.current) clearInterval(timerRef.current);
 
     const calcular = () => {
@@ -197,8 +205,9 @@ export default function SubastaDetallePage() {
     channelRef.current = pusherRef.current.subscribe(`subasta-${id}`);
 
     channelRef.current.bind("nueva-puja", (data) => {
-      const liderAnterior = usuarioLider;
-      const yoEraLider = liderAnterior === nombreRef.current;
+      const liderAnteriorId = usuarioLiderRef.current;
+      const nuevoLiderId = Number(data.id_usuario);
+      const yoEraLider = Number(liderAnteriorId) === Number(usuarioActualId);
 
       setPujas((prev) => {
         const yaExiste = prev.some(
@@ -223,8 +232,9 @@ export default function SubastaDetallePage() {
 
       setPujaMasAlta(Number(data.monto));
       setUsuarioLider(data.usuario);
+      usuarioLiderRef.current = nuevoLiderId;
 
-      if (yoEraLider && Number(data.id_usuario) !== Number(usuarioActualId)) {
+      if (yoEraLider && nuevoLiderId !== Number(usuarioActualId)) {
         mostrarNotificacionTemporal(`⚠️ Tu puja ha sido superada por ${data.usuario}`);
       }
     });
