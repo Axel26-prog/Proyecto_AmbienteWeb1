@@ -1,5 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { armarRutaConUsuario } from "../../utils/usuarioActual";
 
 const MENU_OPTIONS = [
     {
@@ -31,8 +32,7 @@ const MENU_OPTIONS = [
         title: "Administrar",
         subtitle: "Subastas",
         route: "/subastas-admin",
-    }
-
+    },
 ];
 
 export default function SubastaMenuBar() {
@@ -53,7 +53,7 @@ export default function SubastaMenuBar() {
                         <button
                             key={item.key}
                             type="button"
-                            onClick={() => navigate(item.route)}
+                            onClick={() => navigate(armarRutaConUsuario(item.route))}
                             className="relative flex min-w-[160px] flex-col items-center text-center"
                         >
                             <span className="font-[Montserrat] text-xs text-[#5b3717]">

@@ -10,7 +10,6 @@ export default function Header() {
   return (
     <header className="bg-white">
       <div className="flex w-full items-center justify-between px-12 py-5">
-        {/* Logo izquierda */}
         <Link to="/" className="flex items-center">
           <img
             src={logo}
@@ -19,7 +18,6 @@ export default function Header() {
           />
         </Link>
 
-        {/* Botones derecha */}
         <div className="flex items-center gap-4">
           <button
             onClick={() => abrirComoUsuario(7)}
