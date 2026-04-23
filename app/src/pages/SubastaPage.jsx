@@ -5,20 +5,16 @@ import {
 } from "../services/SubastaServices";
 import BrandMenuBar from "../components/Layout/BrandMenuBar";
 import { useNavigate } from "react-router-dom";
-import { getUsuarioActualId, armarRutaConUsuario } from "../utils/usuarioActual";
-import { getUsuarioDetalle } from "../services/UsuarioServices";
 
 export default function SubastaPage({ tipo = "activas" }) {
   const [subastas, setSubastas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [nombreUsuarioActual, setNombreUsuarioActual] = useState("");
   const mostrarFinalizadas = tipo === "inactivas";
   const navigate = useNavigate();
-  const usuarioActualId = getUsuarioActualId();
 
   const handleVerDetalle = (idSubasta) => {
-    navigate(armarRutaConUsuario(`/subasta/${idSubasta}`));
+    navigate(`/subasta/${idSubasta}`);
   };
 
   useEffect(() => {
@@ -46,45 +42,8 @@ export default function SubastaPage({ tipo = "activas" }) {
     };
 
     cargarSubastas();
-
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [mostrarFinalizadas]);
-
-  useEffect(() => {
-    let alive = true;
-
-    const cargarUsuarioActual = async () => {
-      try {
-        if (!usuarioActualId) {
-          setNombreUsuarioActual("");
-          return;
-        }
-
-        const data = await getUsuarioDetalle(usuarioActualId);
-        const usuario = data?.data || data;
-
-        if (!alive) return;
-
-        if (usuario?.nombre) {
-          setNombreUsuarioActual(
-            `${usuario.nombre} ${usuario.apellido || ""}`.trim()
-          );
-        } else {
-          setNombreUsuarioActual("");
-        }
-      } catch (e) {
-        if (alive) setNombreUsuarioActual("");
-      }
-    };
-
-    cargarUsuarioActual();
-
-    return () => {
-      alive = false;
-    };
-  }, [usuarioActualId]);
 
   return (
     <div className="bg-gray-100 min-h-screen font-[Montserrat]">
@@ -100,24 +59,12 @@ export default function SubastaPage({ tipo = "activas" }) {
           </h2>
 
           <button
-            onClick={() => navigate(armarRutaConUsuario("/pago"))}
+            onClick={() => navigate("/pago")}
             className="px-4 py-2 rounded font-semibold"
             style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
           >
             Mis Pagos
           </button>
-        </div>
-
-        <div
-          className="mb-6 px-4 py-3 rounded text-sm"
-          style={{
-            backgroundColor: "#fdf3e7",
-            border: "1px solid #e8a96e",
-            color: "#845b34",
-          }}
-        >
-          Usuario actual:{" "}
-          <strong>{nombreUsuarioActual || "Sin usuario seleccionado"}</strong>
         </div>
 
         {loading && (
@@ -157,9 +104,7 @@ export default function SubastaPage({ tipo = "activas" }) {
                       src={imgUrl}
                       alt={s.modelo}
                       className="max-h-full max-w-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                     />
                   ) : (
                     <span className="text-sm text-gray-400">Sin imagen</span>
@@ -175,10 +120,7 @@ export default function SubastaPage({ tipo = "activas" }) {
                   </h3>
 
                   {(() => {
-                    const categorias = s.categorias
-                      ? s.categorias.split(", ")
-                      : [];
-
+                    const categorias = s.categorias ? s.categorias.split(", ") : [];
                     return categorias.length > 0 ? (
                       <div className="flex flex-wrap gap-2 mb-3">
                         {categorias.map((cat, index) => (
@@ -196,30 +138,18 @@ export default function SubastaPage({ tipo = "activas" }) {
                   {mostrarFinalizadas ? (
                     <>
                       <p className="text-base mb-1">
-                        <strong style={{ fontFamily: "Georgia" }}>
-                          Fecha cierre:
-                        </strong>{" "}
+                        <strong style={{ fontFamily: "Georgia" }}>Fecha cierre:</strong>{" "}
                         <span style={{ fontFamily: "Montserrat, sans-serif" }}>
-                          {s.fecha_cierre
-                            ? new Date(s.fecha_cierre).toLocaleDateString()
-                            : "-"}
+                          {s.fecha_cierre ? new Date(s.fecha_cierre).toLocaleDateString() : "-"}
                         </span>
                       </p>
-
                       <p className="text-base mb-1">
                         <strong style={{ fontFamily: "Georgia" }}>Pujas:</strong>{" "}
-                        <span style={{ fontFamily: "Montserrat, sans-serif" }}>
-                          {s.cantidad_pujas ?? 0}
-                        </span>
+                        <span style={{ fontFamily: "Montserrat, sans-serif" }}>{s.cantidad_pujas ?? 0}</span>
                       </p>
-
                       <p className="text-base mb-3">
-                        <strong style={{ fontFamily: "Georgia" }}>
-                          Estado:
-                        </strong>{" "}
-                        <span style={{ fontFamily: "Montserrat, sans-serif" }}>
-                          {s.estado_final || "Finalizada"}
-                        </span>
+                        <strong style={{ fontFamily: "Georgia" }}>Estado:</strong>{" "}
+                        <span style={{ fontFamily: "Montserrat, sans-serif" }}>{s.estado_final || "Finalizada"}</span>
                       </p>
                     </>
                   ) : (
@@ -227,34 +157,23 @@ export default function SubastaPage({ tipo = "activas" }) {
                       <p className="text-base mb-1">
                         <strong style={{ fontFamily: "Georgia" }}>Inicio:</strong>{" "}
                         <span style={{ fontFamily: "Montserrat, sans-serif" }}>
-                          {s.fecha_inicio
-                            ? new Date(s.fecha_inicio).toLocaleDateString()
-                            : "-"}
+                          {s.fecha_inicio ? new Date(s.fecha_inicio).toLocaleDateString() : "-"}
                         </span>
                       </p>
-
                       <p className="text-base mb-1">
                         <strong style={{ fontFamily: "Georgia" }}>Cierre:</strong>{" "}
                         <span style={{ fontFamily: "Montserrat, sans-serif" }}>
-                          {s.fecha_estimada_cierre
-                            ? new Date(s.fecha_estimada_cierre).toLocaleDateString()
-                            : "-"}
+                          {s.fecha_estimada_cierre ? new Date(s.fecha_estimada_cierre).toLocaleDateString() : "-"}
                         </span>
                       </p>
-
                       <p className="text-base mb-1">
-                        <strong style={{ fontFamily: "Georgia" }}>
-                          Precio base:
-                        </strong>{" "}
+                        <strong style={{ fontFamily: "Georgia" }}>Precio base:</strong>{" "}
                         <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                           ${Number(s.precio_inicial || 0).toLocaleString()}
                         </span>
                       </p>
-
                       <p className="text-base mb-3">
-                        <strong style={{ fontFamily: "Georgia" }}>
-                          Incremento mínimo:
-                        </strong>{" "}
+                        <strong style={{ fontFamily: "Georgia" }}>Incremento mínimo:</strong>{" "}
                         <span style={{ fontFamily: "Montserrat, sans-serif" }}>
                           ${Number(s.incremento_minimo || 0).toLocaleString()}
                         </span>
@@ -264,9 +183,7 @@ export default function SubastaPage({ tipo = "activas" }) {
 
                   <p className="text-base mb-3">
                     <strong style={{ fontFamily: "Georgia" }}>Pujas:</strong>{" "}
-                    <span style={{ fontFamily: "Montserrat, sans-serif" }}>
-                      {s.cantidad_pujas ?? 0}
-                    </span>
+                    <span style={{ fontFamily: "Montserrat, sans-serif" }}>{s.cantidad_pujas ?? 0}</span>
                   </p>
 
                   <button

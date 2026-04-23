@@ -1,5 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const MENU_OPTIONS = [
     {
@@ -7,46 +8,55 @@ const MENU_OPTIONS = [
         title: "Subastas",
         subtitle: "Activas",
         route: "/subastas",
+        adminOnly: false,
     },
     {
         key: "inactivas",
         title: "Subastas",
         subtitle: "Finalizadas",
         route: "/subastas-inactivas",
+        adminOnly: false,
     },
     {
         key: "objetos",
         title: "Objetos",
         subtitle: "Subastables",
         route: "/objetos",
+        adminOnly: false,
     },
     {
         key: "admin-objetos",
         title: "Administrar",
         subtitle: "Objetos",
         route: "/objetos-admin",
+        adminOnly: true,
     },
     {
         key: "admin-subastas",
         title: "Administrar",
         subtitle: "Subastas",
         route: "/subastas-admin",
-    }
-
+        adminOnly: true,
+    },
 ];
 
 export default function SubastaMenuBar() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { hasRole } = useAuth();
 
-    const getIsActive = (route) => {
-        return location.pathname === route;
-    };
+    const isAdmin = hasRole("Administrador");
+
+    const visibleOptions = MENU_OPTIONS.filter(
+        (item) => !item.adminOnly || isAdmin
+    );
+
+    const getIsActive = (route) => location.pathname === route;
 
     return (
         <nav className="border-t border-b border-[#845b34]/40 bg-white">
             <div className="mx-auto flex w-full max-w-6xl items-end justify-center gap-16 overflow-x-auto px-6 py-4">
-                {MENU_OPTIONS.map((item) => {
+                {visibleOptions.map((item) => {
                     const isActive = getIsActive(item.route);
 
                     return (

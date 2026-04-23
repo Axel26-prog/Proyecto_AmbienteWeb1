@@ -6,7 +6,7 @@ class PujaController
 {
     private function getPusher()
     {
-        return new Pusher(
+        return new Pusher(  
             'f286856de296137ede61',
             'dbf92c79617f65f2affb',
             '2139427',
