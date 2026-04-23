@@ -117,7 +117,7 @@ class PujaModel
                     $obj->id_subasta
                 );";
 
-        return $this->enlace->ExecuteSQL($vSql);
+        return $this->enlace->executeSQL_DML($vSql);
     }
 
     /* Obtener pujas realizadas por un usuario */

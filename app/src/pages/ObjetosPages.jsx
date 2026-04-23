@@ -21,7 +21,7 @@ export default function ObjetosPage() {
     try {
       const data = await getRelojes();
       console.log("Respuesta API:", data);
-      setRelojes(data); //guarda la lista de relojes
+     setRelojes((data || []).filter((r) => r.estado !== "eliminado")) //guarda la lista de relojes
     } catch (error) {
       console.error("Error cargando relojes", error);
       setRelojes([]);

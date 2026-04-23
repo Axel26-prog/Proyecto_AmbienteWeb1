@@ -1,4 +1,7 @@
 <?php
+
+use Pusher\Pusher;
+
 class PagoController
 {
     private $model;
@@ -6,6 +9,19 @@ class PagoController
     public function __construct()
     {
         $this->model = new PagoModel();
+    }
+
+    private function getPusher()
+    {
+        return new Pusher(
+            'f286856de296137ede61',
+            'dbf92c79617f65f2affb',
+            '2139427',
+            [
+                'cluster' => 'us2',
+                'useTLS' => true
+            ]
+        );
     }
 
     /* Listar todos */
@@ -45,8 +61,25 @@ class PagoController
     public function update()
     {
         $request = json_decode(file_get_contents("php://input"));
-
         $response = $this->model->update($request);
+
+        if ($response) {
+            $ganadorModel = new GanadorModel();
+            $ganador = $ganadorModel->get($request->id_ganador); // agrega este método si no existe
+
+            if ($ganador) {
+                $this->getPusher()->trigger(
+                    "subasta-{$ganador->id_subasta}",
+                    "pago-confirmado",
+                    [
+                        "id_pago" => (int)$request->id_pago,
+                        "id_usuario" => (int)$ganador->id_usuario,
+                        "id_subasta" => (int)$ganador->id_subasta,
+                        "fecha_pago" => date("Y-m-d H:i:s")
+                    ]
+                );
+            }
+        }
 
         echo json_encode([
             "success" => $response
@@ -61,5 +94,11 @@ class PagoController
         echo json_encode([
             "success" => $response
         ]);
+    }
+
+    public function getByUsuario($idUsuario)
+    {
+        $response = $this->model->getByUsuario($idUsuario);
+        echo json_encode($response);
     }
 }

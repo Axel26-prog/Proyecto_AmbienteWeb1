@@ -6,7 +6,7 @@ class RoutesController
 
     public function __construct()
     {
-       
+
         // $this->authMiddleware = new AuthMiddleware();
         // $this->registerRoutes();
 
@@ -82,9 +82,8 @@ class RoutesController
                     case 'GET':
 
                         if ($action && is_numeric($action)) {
-                          
-                            $controller->get($action);
 
+                            $controller->get($action);
                         } elseif ($action && method_exists($controller, $action)) {
 
                             if ($param1 && $param2) {
@@ -94,11 +93,9 @@ class RoutesController
                             } else {
                                 $controller->$action();
                             }
-
                         } elseif (!$action) {
-                        
-                            $controller->index();
 
+                            $controller->index();
                         } else {
                             throw new Exception("Acción no encontrada");
                         }
@@ -108,7 +105,14 @@ class RoutesController
                     case 'POST':
 
                         if ($action && method_exists($controller, $action)) {
-                            $controller->$action();
+
+                            if ($param1 && $param2) {
+                                $controller->$action($param1, $param2);
+                            } elseif ($param1) {
+                                $controller->$action($param1);
+                            } else {
+                                $controller->$action();
+                            }
                         } else {
                             $controller->create();
                         }
@@ -127,7 +131,6 @@ class RoutesController
                             } else {
                                 $controller->$action();
                             }
-
                         } elseif ($action && is_numeric($action)) {
                             $controller->update($action);
                         } else {
@@ -149,11 +152,9 @@ class RoutesController
                     default:
                         throw new Exception("Método HTTP no permitido");
                 }
-
             } else {
                 throw new Exception("Controlador no encontrado");
             }
-
         } catch (\Throwable $e) {
 
             http_response_code(500);

@@ -1,7 +1,29 @@
 import { apiFetch } from "./api";
 
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+export const loginUsuario = async ({ correo, contrasena }) => {
+  return apiFetch("usuario/login", {
+    method: "POST",
+    body: JSON.stringify({ correo, contrasena }),
+  });
+};
+
+export const registerUsuario = async (data) => {
+  return apiFetch("usuario/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+export const logoutUsuario = async () => {
+  return apiFetch("usuario/logout");
+};
+
+// ─── CRUD ────────────────────────────────────────────────────────────────────
+
 export function getUsuarios() {
-  return apiFetch("usuario"); 
+  return apiFetch("usuario");
 }
 
 export function getUsuarioDetalle(id) {
@@ -21,7 +43,6 @@ export function updateUsuario(id, data) {
     body: JSON.stringify(data),
   });
 }
-
 
 export function deleteUsuario(id) {
   return apiFetch(`usuario/${id}`, {

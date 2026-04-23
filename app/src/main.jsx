@@ -4,6 +4,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 import Layout from "./components/Layout/Layout";
 import { BrandProvider } from "./context/BrandContext";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import ObjetosAdminPage from "./pages/ObjetosAdminPage";
 import UsuariosPages from "./pages/UsuariosPages";
 import ObjetosEditPage from "./pages/ObjetosEditPage";
@@ -11,29 +15,66 @@ import HomePage from "./pages/HomePage";
 import ObjetosPages from "./pages/ObjetosPages";
 import SubastaPage from "./pages/SubastaPage";
 import SubastaDetallePage from "./pages/SubastaDetallePage";
-import SubastasAdminPage from "./pages/SubastasAdminPage";   // ← nuevo
-import SubastaEditPage from "./pages/SubastaEditPage";       // ← nuevo
+import SubastasAdminPage from "./pages/SubastasAdminPage";
+import SubastaEditPage from "./pages/SubastaEditPage";
+import PagoPage from "./pages/PagoPage";
 import React from "react";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrandProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="usuarios" element={<UsuariosPages />} />
-            <Route path="objetos" element={<ObjetosPages />} />
-            <Route path="objetos-admin" element={<ObjetosAdminPage />} />
-            <Route path="objeto/:id" element={<ObjetosEditPage />} />
-            <Route path="subastas" element={<SubastaPage />} />
-            <Route path="subastas-inactivas" element={<SubastaPage tipo="inactivas" />} />
-            <Route path="subasta/:id" element={<SubastaDetallePage />} />
-            <Route path="subastas-admin" element={<SubastasAdminPage />} />      {/* ← nuevo */}
-            <Route path="subasta/editar/:id" element={<SubastaEditPage />} />    {/* ← nuevo */}
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </BrandProvider>
-  </StrictMode>
+    <AuthProvider>
+      {" "}
+      {/* ← envuelve todo */}
+      <BrandProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Rutas públicas - sin Layout */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+
+            {/* Rutas protegidas - con Layout */}
+            <Route path="/" element={<Layout />}>
+              <Route index element={<HomePage />} />
+
+              {/* Cualquier usuario autenticado */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="objetos" element={<ObjetosPages />} />
+                <Route path="subastas" element={<SubastaPage />} />
+                <Route
+                  path="subastas-inactivas"
+                  element={<SubastaPage tipo="inactivas" />}
+                />
+                <Route path="subasta/:id" element={<SubastaDetallePage />} />
+                <Route path="pago" element={<PagoPage />} />
+              </Route>
+
+              <Route element={<ProtectedRoute roles={["Administrador"]} />}>
+                <Route path="usuarios" element={<UsuariosPages />} />
+                <Route path="objetos-admin" element={<ObjetosAdminPage />} />
+                <Route path="objeto/:id" element={<ObjetosEditPage />} />
+                <Route
+                  path="subasta/editar/:id"
+                  element={<SubastaEditPage />}
+                />
+              </Route>
+
+              {/* Administrador y Vendedor */}
+              <Route
+                element={
+                  <ProtectedRoute roles={["Administrador", "Vendedor"]} />
+                }
+              >
+                <Route path="subastas-admin" element={<SubastasAdminPage />} />
+              </Route>
+
+              {/* Solo Vendedor */}
+              {/* <Route element={<ProtectedRoute roles={["Vendedor"]} />}>
+                <Route path="mis-objetos" element={<MisObjetosPage />} />
+              </Route> */}
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </BrandProvider>
+    </AuthProvider>
+  </StrictMode>,
 );
