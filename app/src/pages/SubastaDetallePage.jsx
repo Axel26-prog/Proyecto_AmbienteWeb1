@@ -14,7 +14,7 @@ export default function SubastaDetallePage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const usuarioActualId = getUsuarioActualId();
+  const usuarioActualId = getUsuarioActualId(); //obtiene el usuario actual desde la logica 
 
   const [subasta, setSubasta] = useState(null);
   const [pujas, setPujas] = useState([]);
@@ -32,6 +32,7 @@ export default function SubastaDetallePage() {
   const [nombreComprador, setNombreComprador] = useState("");
   const [usuarioActual, setUsuarioActual] = useState(null);
 
+  //referencias para manejar Pusher, temporizadores y estados persistentes
   const pusherRef = useRef(null);
   const channelRef = useRef(null);
   const timerRef = useRef(null);
@@ -43,6 +44,7 @@ export default function SubastaDetallePage() {
     cargar();
 
     return () => {
+      //limpia eventos, desconecta Pusher y detiene temporizadores
       channelRef.current?.unbind_all();
       pusherRef.current?.disconnect();
       if (timerRef.current) clearInterval(timerRef.current);
@@ -52,6 +54,7 @@ export default function SubastaDetallePage() {
     };
   }, [id]);
 
+  //muestra una notificación temporal y luego la oculta automáticamente
   const mostrarNotificacionTemporal = (mensaje) => {
     setNotificacion(mensaje);
 
@@ -64,6 +67,7 @@ export default function SubastaDetallePage() {
     }, 6000);
   };
 
+  //solicita al backend el cierre de la subasta
   const cerrarSubastaEnBackend = async () => {
     try {
       const res = await fetch(`${API_URL}/subasta/cerrar/${id}`, {
@@ -71,6 +75,7 @@ export default function SubastaDetallePage() {
         headers: { "Content-Type": "application/json" },
       });
 
+      //luego de cerrar, vuelve a cargar ganador y pago
       await res.json();
       await cargarGanadorYPago();
     } catch (e) {
@@ -93,12 +98,16 @@ export default function SubastaDetallePage() {
       const [detalleRes, historialRes, usuarioRes] = await Promise.all(promesas);
 
       const detalle = detalleRes || null;
+
+      //ordena las pujas de mayor a menor monto
       const historial = Array.isArray(historialRes?.data)
         ? [...historialRes.data].sort((a, b) => Number(b.monto) - Number(a.monto))
         : [];
 
       const usuario = usuarioRes?.data || usuarioRes;
 
+
+      //construye el usuario actual para saber quien puja y su rol
       if (usuario && usuario.nombre) {
         const nombre = `${usuario.nombre} ${usuario.apellido || ""}`.trim();
         setNombreComprador(nombre);
@@ -114,9 +123,11 @@ export default function SubastaDetallePage() {
         setUsuarioActual(null);
       }
 
+      //guarda detalle y historial
       setSubasta(detalle);
       setPujas(historial);
 
+      //determina cuál es la puja más alta y quién es el líder
       if (historial.length > 0) {
         const maxPuja = historial.reduce((max, p) =>
           Number(p.monto) > Number(max.monto) ? p : max
@@ -135,15 +146,18 @@ export default function SubastaDetallePage() {
         const ahora = new Date();
         const fin = new Date(detalle.fecha_fin.replace(" ", "T"));
 
+        //si la subasta ya venció o viene cerrada desde BD,
+        //se marca como cerrada y se solicita el cierre al backend
         if (ahora >= fin || detalle.estado?.toLowerCase() === "cerrada") {
           setSubastaCerrada(true);
           setTiempoRestante("Subasta cerrada");
           await cerrarSubastaEnBackend();
         } else {
+          //si aún sigue activa, se inicia el contador regresivo
           setSubastaCerrada(false);
           iniciarContador(detalle.fecha_fin);
         }
-
+        //activa la conexión en tiempo real con Pusher
         iniciarPusher();
       }
     } catch (e) {
@@ -152,12 +166,13 @@ export default function SubastaDetallePage() {
       setLoading(false);
     }
   };
-
+  //carga ganador y pago asociado después del cierre
   const cargarGanadorYPago = async () => {
     try {
       const ganadorRes = await fetch(`${API_URL}/ganador/getBySubasta/${id}`);
       const ganadorData = await ganadorRes.json();
 
+      //si existe ganador, se consulta su pago asociado
       if (ganadorData && ganadorData.id_ganador) {
         setGanador(ganadorData);
 
@@ -172,6 +187,7 @@ export default function SubastaDetallePage() {
           setPago(null);
         }
       } else {
+        //si no hubo ganador, no hay pago
         setGanador(null);
         setPago(null);
       }
@@ -179,13 +195,13 @@ export default function SubastaDetallePage() {
       console.error("Error cargando ganador/pago", e);
     }
   };
-
+//inicia el contador regresivo del tiempo restante
   const iniciarContador = (fechaFin) => {
     if (timerRef.current) clearInterval(timerRef.current);
 
     const calcular = () => {
       const diff = new Date(fechaFin.replace(" ", "T")) - new Date();
-
+//cuando el tiempo termina, se cierra la subasta
       if (diff <= 0) {
         setTiempoRestante("Subasta cerrada");
         setSubastaCerrada(true);
@@ -205,6 +221,7 @@ export default function SubastaDetallePage() {
     timerRef.current = setInterval(calcular, 1000);
   };
 
+  //inicia la suscripción de tiempo real para escuchar eventos de la subasta
   const iniciarPusher = () => {
     if (pusherRef.current) {
       channelRef.current?.unbind_all();
@@ -214,15 +231,18 @@ export default function SubastaDetallePage() {
     pusherRef.current = new Pusher("f286856de296137ede61", {
       cluster: "us2",
     });
-
+    //cada subasta tiene su propio canal
     channelRef.current = pusherRef.current.subscribe(`subasta-${id}`);
 
     channelRef.current.bind("nueva-puja", (data) => {
       const liderAnteriorId = usuarioLiderRef.current;
       const nuevoLiderId = Number(data.id_usuario);
+
+       //determina si el usuario actual era el líder antes del evento
       const yoEraLider = Number(liderAnteriorId) === Number(usuarioActualId);
 
       setPujas((prev) => {
+        //evita duplicar una puja ya agregada
         const yaExiste = prev.some(
           (p) =>
             Number(p.monto) === Number(data.monto) &&
@@ -258,7 +278,7 @@ export default function SubastaDetallePage() {
       if (timerRef.current) clearInterval(timerRef.current);
       await cargarGanadorYPago();
     });
-
+//metodo cuando se confirma el pago
     channelRef.current.bind("pago-confirmado", (data) => {
       setPago((prev) => {
         if (!prev) return prev;
@@ -270,13 +290,13 @@ export default function SubastaDetallePage() {
           fecha_pago: data?.fecha_pago || prev.fecha_pago,
         };
       });
-
+//si el pago fue confirmado por otro evento, notifica visualmente
       if (Number(data?.id_usuario) !== Number(usuarioActualId)) {
         mostrarNotificacionTemporal("✅ El pago del ganador fue confirmado");
       }
     });
   };
-
+//funcion para registrar una nueva puja
   const handlePujar = async () => {
     setError("");
 
@@ -284,7 +304,7 @@ export default function SubastaDetallePage() {
       setError("Debe seleccionar un usuario antes de pujar.");
       return;
     }
-
+//solo usuarios con rol cliente pueden pujar
     const puedePujar =
       usuarioActual &&
       String(usuarioActual.rol).toLowerCase() === "cliente";
@@ -293,7 +313,7 @@ export default function SubastaDetallePage() {
       setError("Solo los usuarios con rol cliente pueden realizar pujas.");
       return;
     }
-
+//valida el monto de puja
     const montoNum = Number(monto);
 
     if (!monto || isNaN(montoNum) || montoNum <= 0) {
@@ -413,6 +433,9 @@ export default function SubastaDetallePage() {
           </div>
         )}
 
+          {/* Este bloque solo aparece si el usuario actual ganó
+            y tiene un pago pendiente */}
+
         {subastaCerrada &&
           ganador &&
           pago &&
@@ -429,7 +452,7 @@ export default function SubastaDetallePage() {
                 Ganaste esta subasta y tienes un pago pendiente por{" "}
                 <strong>${Number(pago.monto).toLocaleString()}</strong>.
               </p>
-
+              {/* Botón para ir a la pantalla de pago */}
               <button
                 onClick={() => navigate(armarRutaConUsuario("/pago"))}
                 className="px-4 py-2 rounded text-sm font-semibold"

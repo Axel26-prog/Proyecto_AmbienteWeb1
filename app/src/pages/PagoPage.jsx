@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function PagoPage() {
     const navigate = useNavigate();
-    const usuarioActualId = getUsuarioActualId();
+    const usuarioActualId = getUsuarioActualId();//obtiene el usuario actual desde la lógica
 
     const [nombreUsuarioActual, setNombreUsuarioActual] = useState("");
     const [pagos, setPagos] = useState([]);
@@ -19,7 +19,7 @@ export default function PagoPage() {
 
     useEffect(() => {
         let alive = true;
-
+        //carga el nombre del usuario actual para mostrarlo en la interfaz
         const cargarUsuarioActual = async () => {
             try {
                 if (!usuarioActualId) {
@@ -53,17 +53,17 @@ export default function PagoPage() {
 
     useEffect(() => {
         let alive = true;
-
+        //carga todos los pagos asociados al usuario actual
         const cargarPagos = async () => {
             try {
                 setLoading(true);
                 setError("");
-
+                //si no hay usuario actual, no se puede consultar pagos
                 if (!usuarioActualId) {
                     setError("No se encontró el usuario actual.");
                     return;
                 }
-
+                //consulta pagos del usuario ganador
                 const data = await getPagosByUsuario(usuarioActualId);
 
                 if (!alive) return;
@@ -83,12 +83,14 @@ export default function PagoPage() {
         };
     }, [usuarioActualId]);
 
+    //confirma un pago específico
     const handleConfirmarPago = async (pago) => {
         try {
             setConfirmandoId(pago.id_pago);
 
-            await confirmarPago(pago);
+            await confirmarPago(pago);//envía la confirmación al backend
 
+            //actualiza la UI localmente para reflejar el cambio
             setPagos((prev) =>
                 prev.map((p) =>
                     Number(p.id_pago) === Number(pago.id_pago)
@@ -107,7 +109,7 @@ export default function PagoPage() {
             setConfirmandoId(null);
         }
     };
-
+//separa pagos pendientes de pagos confirmados
     const pagosPendientes = pagos.filter((p) => Number(p.id_estado_pago) !== 2);
     const pagosConfirmados = pagos.filter((p) => Number(p.id_estado_pago) === 2);
 

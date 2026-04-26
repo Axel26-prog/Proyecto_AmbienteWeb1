@@ -12,11 +12,12 @@ export default function SubastaPage({ tipo = "activas" }) {
   const [subastas, setSubastas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [nombreUsuarioActual, setNombreUsuarioActual] = useState("");
+  const [nombreUsuarioActual, setNombreUsuarioActual] = useState(""); //muestra el nombre del usuario en pantalla
   const mostrarFinalizadas = tipo === "inactivas";
   const navigate = useNavigate();
-  const usuarioActualId = getUsuarioActualId();
+  const usuarioActualId = getUsuarioActualId(); //obtiene el usuario desde logica 
 
+  //al entrar al detalle, se conserva el usuario actual en la ruta
   const handleVerDetalle = (idSubasta) => {
     navigate(armarRutaConUsuario(`/subasta/${idSubasta}`));
   };
@@ -52,21 +53,24 @@ export default function SubastaPage({ tipo = "activas" }) {
     };
   }, [mostrarFinalizadas]);
 
+  //función para cargar el nombre del usuario actual
   useEffect(() => {
     let alive = true;
 
     const cargarUsuarioActual = async () => {
       try {
+        //si no existe id de usuario, limpia el nombre
         if (!usuarioActualId) {
           setNombreUsuarioActual("");
           return;
         }
-
+        //consulta el detalle del usuario actual
         const data = await getUsuarioDetalle(usuarioActualId);
         const usuario = data?.data || data;
 
         if (!alive) return;
 
+        //si el usuario trae nombre, arma el nombre completo
         if (usuario?.nombre) {
           setNombreUsuarioActual(
             `${usuario.nombre} ${usuario.apellido || ""}`.trim()
@@ -75,6 +79,7 @@ export default function SubastaPage({ tipo = "activas" }) {
           setNombreUsuarioActual("");
         }
       } catch (e) {
+        //si falla la consulta, limpia el nombre mostrado
         if (alive) setNombreUsuarioActual("");
       }
     };
@@ -99,6 +104,7 @@ export default function SubastaPage({ tipo = "activas" }) {
             {mostrarFinalizadas ? "Subastas Finalizadas" : "Subastas Activas"}
           </h2>
 
+          {/*boton que lleva el usuario a la pagina del pago, tmb lleva en parametro el id del usuario */}
           <button
             onClick={() => navigate(armarRutaConUsuario("/pago"))}
             className="px-4 py-2 rounded font-semibold"
