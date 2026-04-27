@@ -1,10 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Pusher from "pusher-js";
-import {
-  getSubastaDetalle,
-  getHistorialPujas,
-} from "../services/SubastaServices";
+import { getSubastaDetalle, getHistorialPujas } from "../services/SubastaServices";
 import { useAuth } from "@/context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -16,7 +13,7 @@ export default function SubastaDetallePage() {
 
   const usuarioActualId = user?.id_usuario ?? null;
   const nombreComprador = user ? `${user.nombre} ${user.apellido || ""}`.trim() : "";
-  const puedePujar = String(user?.rol ?? "").toLowerCase() === "cliente";
+  const puedePujar = user && String(user?.rol ?? "").toLowerCase() === "comprador";
 
   const [subasta, setSubasta] = useState(null);
   const [pujas, setPujas] = useState([]);
@@ -108,7 +105,6 @@ export default function SubastaDetallePage() {
           setSubastaCerrada(false);
           iniciarContador(detalle.fecha_fin);
         }
-
         iniciarPusher();
       }
     } catch (e) {
@@ -223,7 +219,7 @@ export default function SubastaDetallePage() {
     }
 
     if (!puedePujar) {
-      setError("Solo los usuarios con rol cliente pueden realizar pujas.");
+      setError("Solo los usuarios con rol Comprador pueden realizar pujas.");
       return;
     }
 
@@ -355,7 +351,7 @@ export default function SubastaDetallePage() {
                 <p className="font-semibold">${Number(subasta.incremento_minimo).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase">Puja Más Alta Actual</p>
+                <p className="text-xs text-gray-400 uppercase">Puja Más Alta</p>
                 <p className="font-semibold text-green-700 text-base">${Number(pujaMasAlta).toLocaleString()}</p>
               </div>
               <div>
@@ -381,10 +377,10 @@ export default function SubastaDetallePage() {
                   Monto mínimo requerido: <strong>${minimoRequerido.toLocaleString()}</strong>
                 </p>
                 <p className="text-xs mb-2" style={{ color: "#845b34" }}>
-                  Pujando como: <strong>{nombreComprador || "Usuario no seleccionado"}</strong>
+                  Pujando como: <strong>{nombreComprador || "Usuario no identificado"}</strong>
                 </p>
                 {user && !puedePujar && (
-                  <p className="text-red-600 text-xs mb-2">Solo los usuarios con rol cliente pueden realizar pujas.</p>
+                  <p className="text-red-600 text-xs mb-2">Solo los usuarios con rol Comprador pueden realizar pujas.</p>
                 )}
                 <div className="flex gap-2">
                   <input

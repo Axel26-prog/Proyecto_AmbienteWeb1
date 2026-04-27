@@ -40,7 +40,7 @@ const MENU_OPTIONS = [
     },
 ];
 
-export default function SubastaMenuBar() {
+export default function BrandMenuBar() {
     const navigate = useNavigate();
     const location = useLocation();
     const { hasRole } = useAuth();
@@ -66,10 +66,6 @@ export default function SubastaMenuBar() {
                             onClick={() => navigate(item.route)}
                             className="relative flex min-w-[160px] flex-col items-center text-center"
                         >
-                            <span className="font-[Montserrat] text-xs text-[#5b3717]">
-                                {item.description}
-                            </span>
-
                             <span
                                 className={[
                                     "mt-1 font-[Georgia] text-2xl font-bold leading-none",

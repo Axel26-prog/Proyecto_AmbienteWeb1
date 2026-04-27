@@ -1,23 +1,16 @@
 import relojSubasta from "../assets/Home/subastaReloj_Home.avif";
 import { useNavigate } from "react-router-dom";
-import { getUsuarioActualId } from "../utils/usuarioActual";
+import { armarRutaConUsuario } from "../utils/usuarioActual";
 
 export default function HomePage() {
   const navigate = useNavigate();
 
   const handleVerSubastas = () => {
-    const usuarioActualId = getUsuarioActualId();
-
-    if (usuarioActualId) {
-      navigate(`/subastas?usuario=${usuarioActualId}`);
-    } else {
-      navigate("/subastas");
-    }
+    navigate(armarRutaConUsuario("/subastas"));
   };
 
   return (
     <div className="relative w-full h-screen flex items-center justify-center text-center overflow-hidden">
-      {/* Fondo */}
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -28,7 +21,6 @@ export default function HomePage() {
         }}
       />
 
-      {/* Contenido */}
       <div className="relative z-10 px-4 max-w-2xl text-white">
         <h1
           className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 drop-shadow-lg"
