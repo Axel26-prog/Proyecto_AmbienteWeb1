@@ -139,4 +139,52 @@ class PagoModel
 
         return $this->enlace->ExecuteSQL_DML($vSql);
     }
+
+    /* Obtener todos los pagos para administrador */
+public function getPagosAdmin()
+{
+    $vSql = "SELECT 
+                p.id_pago,
+                p.monto,
+                p.fecha_pago,
+                p.id_ganador,
+                p.id_estado_pago,
+                ep.nombre AS estado_pago,
+                p.id_metodo_pago,
+                mp.nombre AS metodo_pago,
+
+                g.id_subasta,
+                g.id_usuario AS id_usuario_ganador,
+                g.monto_final,
+                g.fecha_asignacion,
+
+                CONCAT(u.nombre, ' ', u.apellido) AS nombre_ganador,
+                u.correo AS correo_ganador,
+
+                r.id_reloj,
+                r.modelo,
+                r.imagen,
+                m.nombre AS marca
+
+            FROM pago p
+            INNER JOIN ganador g 
+                ON p.id_ganador = g.id_ganador
+            INNER JOIN usuario u 
+                ON g.id_usuario = u.id_usuario
+            INNER JOIN estado_pago ep 
+                ON p.id_estado_pago = ep.id_estado_pago
+            INNER JOIN metodo_pago mp 
+                ON p.id_metodo_pago = mp.id_metodo_pago
+            INNER JOIN subasta s 
+                ON g.id_subasta = s.id_subasta
+            INNER JOIN reloj_vendedor rv 
+                ON s.id_reloj_vendedor = rv.id_reloj_vendedor
+            INNER JOIN reloj r 
+                ON rv.id_reloj = r.id_reloj
+            INNER JOIN marca m 
+                ON r.id_marca = m.id_marca
+            ORDER BY p.id_estado_pago ASC, g.fecha_asignacion DESC;";
+
+    return $this->enlace->ExecuteSQL($vSql);
+}
 }

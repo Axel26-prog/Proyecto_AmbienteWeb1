@@ -93,6 +93,32 @@ export default function Header() {
                           </svg>
                           Reportes
                         </Link>
+                        <Link
+                          to="/verPagos"
+                          onClick={() => setMenuAbierto(false)}
+                          className="flex items-center gap-2 px-4 py-2 font-[Montserrat] text-sm text-[#5b3717] transition hover:bg-[#845b34]/10"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2 7h20v10H2V7z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 11h.01M18 13h.01M12 15a3 3 0 100-6 3 3 0 000 6z"
+                            />
+                          </svg>
+                          Ver Pagos
+                        </Link>
                       </>
                     )}
 

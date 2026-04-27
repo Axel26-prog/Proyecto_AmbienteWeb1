@@ -10,6 +10,17 @@ export async function getPagosByUsuario(idUsuario) {
     return await res.json();
 }
 
+export async function getPagosAdmin() {
+    const res = await fetch(`${API_URL}/pago/getPagosAdmin`);
+
+    if (!res.ok) {
+        throw new Error("No se pudieron cargar los pagos del administrador");
+    }
+
+    return await res.json();
+}
+
+
 export async function confirmarPago(pago) {
     const res = await fetch(`${API_URL}/pago`, {
         method: "PUT",

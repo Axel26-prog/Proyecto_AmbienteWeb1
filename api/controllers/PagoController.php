@@ -101,4 +101,11 @@ class PagoController
         $response = $this->model->getByUsuario($idUsuario);
         echo json_encode($response);
     }
+
+    /* Obtener todos los pagos para administrador */
+public function getPagosAdmin()
+{
+    $response = $this->model->getPagosAdmin();
+    echo json_encode($response);
+}
 }

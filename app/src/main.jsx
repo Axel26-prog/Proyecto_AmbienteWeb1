@@ -22,6 +22,8 @@ import SubastasAdminPage from "./pages/SubastasAdminPage";
 import SubastaEditPage from "./pages/SubastaEditPage";
 import PagoPage from "./pages/PagoPage";
 import ReportesPage from "./pages/ReportesPage";
+import AdminVerPagoPage from "./pages/AdminVerPagoPage";
+
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -50,9 +52,11 @@ createRoot(document.getElementById("root")).render(
               {/* Solo Administrador */}
               <Route element={<ProtectedRoute roles={["Administrador"]} />}>
                 <Route path="usuarios"          element={<UsuariosPages />} />
+                <Route path="verPagos"          element={<AdminVerPagoPage />} />
                 <Route path="objetos-admin"     element={<ObjetosAdminPage />} />
                 <Route path="objeto/:id"        element={<ObjetosEditPage />} />
                 <Route path="subasta/editar/:id" element={<SubastaEditPage />} />
+                
               </Route>
 
               {/* Administrador o Vendedor */}
