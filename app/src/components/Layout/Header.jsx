@@ -39,6 +39,14 @@ export default function Header() {
           >
             Ver Usuarios
           </Link>
+
+          <Link
+            to="/reportes"
+            className="rounded-full border-2 border-[#845b34] bg-white px-8 py-3 font-[Montserrat] text-base font-bold text-[#5b3717] transition hover:bg-[#5b3717] hover:text-[#e8a96e]"
+          >
+            Reportes
+          </Link>
+
         </div>
       </div>
 

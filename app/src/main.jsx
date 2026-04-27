@@ -14,6 +14,8 @@ import SubastaDetallePage from "./pages/SubastaDetallePage";
 import SubastasAdminPage from "./pages/SubastasAdminPage";   // ← nuevo
 import SubastaEditPage from "./pages/SubastaEditPage";       // ← nuevo
 import PagoPage from "./pages/PagoPage"; //pagina de pago
+import ReportesPage from "./pages/ReportesPage"; //pagina de pago
+
 import React from "react";
 
 createRoot(document.getElementById("root")).render(
@@ -33,6 +35,8 @@ createRoot(document.getElementById("root")).render(
             <Route path="subastas-admin" element={<SubastasAdminPage />} />      {/* ← nuevo */}
             <Route path="subasta/editar/:id" element={<SubastaEditPage />} />    {/* ← nuevo */}
             <Route path="pago" element={<PagoPage />} />
+            <Route path="reportes" element={<ReportesPage />} />
+
           </Route>
         </Routes>
       </BrowserRouter>
