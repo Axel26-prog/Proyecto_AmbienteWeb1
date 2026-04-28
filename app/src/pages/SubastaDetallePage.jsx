@@ -263,6 +263,10 @@ export default function SubastaDetallePage() {
   const minimoRequerido = pujaMasAlta + Number(subasta.incremento_minimo || 0);
   const esGanador = ganador && Number(ganador.id_usuario) === Number(usuarioActualId);
 
+  const esLiderActual =
+    usuarioLiderRef.current &&
+    Number(usuarioLiderRef.current) === Number(usuarioActualId);
+
   return (
     <div className="bg-gray-100 min-h-screen font-[Montserrat]">
       <div className="p-6 max-w-5xl mx-auto">
@@ -395,7 +399,7 @@ export default function SubastaDetallePage() {
                   />
                   <button
                     onClick={handlePujar}
-                    disabled={enviando || !usuarioActualId || !puedePujar}
+                    disabled={enviando || !usuarioActualId || !puedePujar || esLiderActual}
                     className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
                     style={{ backgroundColor: "#845b34", color: "#e8a96e" }}
                   >
@@ -403,6 +407,11 @@ export default function SubastaDetallePage() {
                   </button>
                 </div>
                 {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
+                {esLiderActual && (
+                  <p className="text-red-600 text-xs mt-1">
+                    Usted ya tiene la puja más alta. Debe esperar a que otro comprador puje.
+                  </p>
+                  )}
               </div>
             )}
           </div>

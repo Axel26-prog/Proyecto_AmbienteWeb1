@@ -53,17 +53,19 @@ class PujaModel
     public function getBySubasta($idSubasta)
     {
         $vSql = "SELECT 
-                    p.id_puja,
-                    p.monto,
-                    p.fecha_hora,
-                    CONCAT(u.nombre,' ',u.apellido) AS usuario
-                FROM puja p
-                INNER JOIN usuario u 
-                    ON p.id_usuario = u.id_usuario
-                WHERE p.id_subasta = $idSubasta
-                ORDER BY p.fecha_hora DESC;";
+                p.id_puja,
+                p.monto,
+                p.fecha_hora,
+                p.id_usuario,
+                p.id_subasta,
+                CONCAT(u.nombre,' ',u.apellido) AS usuario
+            FROM puja p
+            INNER JOIN usuario u 
+                ON p.id_usuario = u.id_usuario
+            WHERE p.id_subasta = $idSubasta
+            ORDER BY p.fecha_hora DESC;";
 
-        return $this->enlace->ExecuteSQL($vSql);
+    return $this->enlace->ExecuteSQL($vSql);
     }
 
     

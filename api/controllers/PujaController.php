@@ -6,7 +6,7 @@ class PujaController
 {
     private function getPusher()
     {
-        return new Pusher(  
+        return new Pusher(
             'f286856de296137ede61',
             'dbf92c79617f65f2affb',
             '2139427',
@@ -115,6 +115,19 @@ class PujaController
             }
 
             $pujaMasAlta = $pujaModel->getPujaMasAlta($request->id_subasta);
+
+            /* 
+Validar auto-puja:
+Si ya existe una puja más alta y pertenece al mismo usuario,
+no se le permite volver a pujar hasta que otro comprador lo supere.
+*/
+            if ($pujaMasAlta && (int)$pujaMasAlta->id_usuario === (int)$request->id_usuario) {
+                return $this->error(
+                    400,
+                    "No puede realizar otra puja consecutiva. Debe esperar a que otro comprador supere su oferta."
+                );
+            }
+
             $montoActual = $pujaMasAlta ? (float)$pujaMasAlta->monto : (float)$subasta->precio_inicial;
             $montoNuevo = (float)$request->monto;
             $incrementoMinimo = (float)$subasta->incremento_minimo;

@@ -7,10 +7,10 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const COLOR_CAFE   = "#845b34";
+const COLOR_CAFE = "#845b34";
 const COLOR_DORADO = "#e8a96e";
 const COLOR_OSCURO = "#5b3717";
-const COLOR_FONDO  = "#fdf3e7";
+const COLOR_FONDO = "#fdf3e7";
 
 function CustomBarTooltip({ active, payload, label }) {
     if (active && payload && payload.length) {
@@ -26,19 +26,39 @@ function CustomBarTooltip({ active, payload, label }) {
     return null;
 }
 
-function CustomLineTooltip({ active, payload, label }) {
+function CustomLineTooltip({ active, payload }) {
+
     if (active && payload && payload.length) {
         const data = payload[0].payload;
+
         return (
-            <div style={{ backgroundColor: COLOR_FONDO, border: "1px solid " + COLOR_DORADO, padding: "12px", color: COLOR_OSCURO, fontFamily: "Montserrat", borderRadius: "8px" }}>
-                <p style={{ fontWeight: "bold", marginBottom: "8px" }}>Fecha: {label}</p>
+            <div style={{
+                backgroundColor: COLOR_FONDO,
+                border: "1px solid " + COLOR_DORADO,
+                padding: "12px",
+                color: COLOR_OSCURO,
+                fontFamily: "Montserrat",
+                borderRadius: "8px"
+            }}>
+                <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
+                    Fecha y hora: {data.fecha_hora}
+                </p>
+
                 <p>Subasta: {data.subasta}</p>
-                <p>Monto ofertado: {Number(data.monto).toLocaleString()}</p>
-                <p>Usuario: {data.usuario || "No disponible"}</p>
+                <p>Monto ofertado: ${Number(data.monto).toLocaleString()}</p>
+                <p>Usuario líder: {data.usuario || "No disponible"}</p>
+
+                {data.es_lider_final && (
+                    <p style={{ marginTop: "8px", fontWeight: "bold", color: "green" }}>
+                        Líder final de la subasta
+                    </p>
+                )}
             </div>
         );
     }
+
     return null;
+
 }
 
 function formatearFecha(fecha) {
@@ -113,22 +133,42 @@ export default function ReportesPage() {
 
     const dataLineChart = useMemo(() => {
         let lista = [...pujas];
-        if (fechaInicio) lista = lista.filter((p) => new Date(p.fecha_hora) >= new Date(fechaInicio));
-        if (fechaFin) {
+
+        if (fechaInicio) {
             lista = lista.filter((p) => {
-                const fin = new Date(fechaFin);
-                fin.setHours(23, 59, 59, 999);
-                return new Date(p.fecha_hora) <= fin;
+                const fechaPuja = String(p.fecha_hora).slice(0, 10);
+                return fechaPuja >= fechaInicio;
             });
         }
-        lista.sort((a, b) => new Date(a.fecha_hora) - new Date(b.fecha_hora));
-        return lista.map((p) => {
-            const s = subastas.find((s) => Number(s.id_subasta) === Number(p.id_subasta));
+
+        if (fechaFin) {
+            lista = lista.filter((p) => {
+                const fechaPuja = String(p.fecha_hora).slice(0, 10);
+                return fechaPuja <= fechaFin;
+            });
+        }
+
+        lista.sort(
+            (a, b) =>
+                new Date(String(a.fecha_hora).replace(" ", "T")) -
+                new Date(String(b.fecha_hora).replace(" ", "T"))
+        );
+
+        return lista.map((p, index) => {
+            const s = subastas.find(
+                (s) => Number(s.id_subasta) === Number(p.id_subasta)
+            );
+
             return {
-                fecha: formatearFecha(p.fecha_hora),
+                orden: index + 1,
+                etiqueta: `Puja ${index + 1}`,
+                fecha_hora: p.fecha_hora,
+                hora: String(p.fecha_hora).slice(11, 19),
                 monto: Number(p.monto || 0),
                 usuario: p.usuario,
-                subasta: s ? "#" + s.id_subasta + " - " + s.modelo : "Subasta #" + p.id_subasta,
+                subasta: s
+                    ? "#" + s.id_subasta + " - " + s.modelo
+                    : "Subasta #" + p.id_subasta,
             };
         });
     }, [pujas, subastas, fechaInicio, fechaFin]);
@@ -225,7 +265,10 @@ export default function ReportesPage() {
                             <ResponsiveContainer width="100%" height={480}>
                                 <LineChart data={dataLineChart} margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="fecha" tick={{ fontSize: 12, fill: COLOR_OSCURO }} />
+                                    <XAxis
+                                        dataKey="etiqueta"
+                                        tick={{ fontSize: 12, fill: COLOR_OSCURO }}
+                                    />
                                     <YAxis tick={{ fontSize: 12, fill: COLOR_OSCURO }} />
                                     <Tooltip content={<CustomLineTooltip />} />
                                     <Legend verticalAlign="top" height={36} />
