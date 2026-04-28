@@ -13,7 +13,7 @@ export default function SubastaDetallePage() {
 
   const usuarioActualId = user?.id_usuario ?? null;
   const nombreComprador = user ? `${user.nombre} ${user.apellido || ""}`.trim() : "";
-  const puedePujar = user && String(user?.rol ?? "").toLowerCase() === "comprador";
+  const puedePujar = user && String(user?.rol ?? "").toLowerCase() === "cliente";
 
   const [subasta, setSubasta] = useState(null);
   const [pujas, setPujas] = useState([]);

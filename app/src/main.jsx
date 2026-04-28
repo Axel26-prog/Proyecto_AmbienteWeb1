@@ -55,14 +55,15 @@ createRoot(document.getElementById("root")).render(
               <Route element={<ProtectedRoute roles={["Administrador"]} />}>
                 <Route path="usuarios" element={<UsuariosPages />} />
                 <Route path="verPagos" element={<AdminVerPagoPage />} />
-                <Route path="objetos-admin" element={<ObjetosAdminPage />} />
-                <Route path="objeto/:id" element={<ObjetosEditPage />} />
-                <Route path="subasta/editar/:id" element={<SubastaEditPage />} />
+                
               </Route>
 
               {/* Administrador o Vendedor */}
               <Route element={<ProtectedRoute roles={["Administrador", "Vendedor"]} />}>
                 <Route path="subastas-admin" element={<SubastasAdminPage />} />
+                <Route path="objetos-admin" element={<ObjetosAdminPage />} />
+                <Route path="objeto/:id" element={<ObjetosEditPage />} />
+                <Route path="subasta/editar/:id" element={<SubastaEditPage />} />
               </Route>
             </Route>
           </Routes>

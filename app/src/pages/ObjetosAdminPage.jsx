@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import BrandMenuBar from "../components/Layout/BrandMenuBar";
+import { useAuth } from "@/context/AuthContext";
 
 import {
   getRelojes,
@@ -10,10 +11,7 @@ import {
   getMarcas,
   getCondiciones,
   getCategorias,
-  getUsuario,
 } from "@/services/ObjetoServices";
-
-const ID_USUARIO_PROVISIONAL = 2;
 
 const initialForm = {
   modelo: "",
@@ -25,13 +23,15 @@ const initialForm = {
 };
 
 export default function ObjetosAdminPage() {
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("Administrador");
+
   const [relojes, setRelojes] = useState([]);
   const [detalle, setDetalle] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   /* Modal */
-  const [vendedorProvisional, setVendedorProvisional] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [imagen, setImagen] = useState(null);
@@ -96,18 +96,12 @@ export default function ObjetosAdminPage() {
   };
 
   /* ── Modal helpers ── */
-  const abrirModal = async () => {
+  const abrirModal = () => {
     setForm(initialForm);
     setImagen(null);
     setCategoriasSeleccionadas([]);
     setErrores({});
     setModalAbierto(true);
-    try {
-      const u = await getUsuario(ID_USUARIO_PROVISIONAL);
-      setVendedorProvisional(u);
-    } catch (error) {
-      console.error("Error cargando vendedor provisional", error);
-    }
   };
 
   const cerrarModal = () => {
@@ -116,7 +110,6 @@ export default function ObjetosAdminPage() {
     setImagen(null);
     setCategoriasSeleccionadas([]);
     setErrores({});
-    setVendedorProvisional(null);
   };
 
   const handleChange = (e) => {
@@ -180,7 +173,7 @@ export default function ObjetosAdminPage() {
       formData.append("precio_estimado", form.precio_estimado);
       formData.append("id_marca", form.id_marca);
       formData.append("id_condicion", form.id_condicion);
-      formData.append("id_usuario", ID_USUARIO_PROVISIONAL);
+      formData.append("id_usuario", user.id_usuario); // ✅ usuario logueado
       formData.append("categorias", JSON.stringify(categoriasSeleccionadas));
 
       if (imagen) {
@@ -250,6 +243,8 @@ export default function ObjetosAdminPage() {
                     {reloj.estado === "eliminado" && "Eliminado"}
                   </td>
                   <td className="p-3 flex gap-2 flex-wrap items-start">
+
+                    {/* Detalle — visible para todos */}
                     <button
                       disabled={reloj.estado === "eliminado"}
                       className={`px-3 py-1 rounded ${reloj.estado === "eliminado" ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -262,60 +257,33 @@ export default function ObjetosAdminPage() {
                       Detalle
                     </button>
 
-                    <div className="flex flex-col">
-                      <button
-                        disabled={
-                          reloj.estado === "eliminado" ||
-                          reloj.tiene_subasta_activa == 1
-                        }
-                        className={`px-3 py-1 rounded border ${
-                          reloj.estado === "eliminado" ||
-                          reloj.tiene_subasta_activa == 1
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                        style={{ borderColor: "#845b34", color: "#845b34" }}
-                        onClick={() => {
-                          if (
+                    {/* Editar — solo Administrador */}
+                    {isAdmin && (
+                      <div className="flex flex-col">
+                        <button
+                          disabled={
                             reloj.estado === "eliminado" ||
                             reloj.tiene_subasta_activa == 1
-                          )
-                            return;
-                          navigate(`/objeto/${reloj.id_reloj}`);
-                        }}
-                      >
-                        Editar
-                      </button>
-                      {reloj.tiene_subasta_activa == 1 && (
-                        <p
-                          className="text-xs mt-0.5 text-center"
-                          style={{ color: "#a07850" }}
-                        >
-                          En subasta activa
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col">
-                      <button
-                        disabled={
-                          reloj.estado === "activo" &&
-                          reloj.tiene_subasta_activa == 1
-                        }
-                        className={`px-3 py-1 rounded text-white ${reloj.estado === "activo" ? "bg-red-500" : "bg-green-600"} ${reloj.estado === "activo" && reloj.tiene_subasta_activa == 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-                        onClick={() => {
-                          if (
-                            reloj.estado === "activo" &&
+                          }
+                          className={`px-3 py-1 rounded border ${
+                            reloj.estado === "eliminado" ||
                             reloj.tiene_subasta_activa == 1
-                          )
-                            return;
-                          cambiarEstado(reloj.id_reloj);
-                        }}
-                      >
-                        {reloj.estado === "activo" ? "Eliminar" : "Reactivar"}
-                      </button>
-                      {reloj.estado === "activo" &&
-                        reloj.tiene_subasta_activa == 1 && (
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
+                          style={{ borderColor: "#845b34", color: "#845b34" }}
+                          onClick={() => {
+                            if (
+                              reloj.estado === "eliminado" ||
+                              reloj.tiene_subasta_activa == 1
+                            )
+                              return;
+                            navigate(`/objeto/${reloj.id_reloj}`);
+                          }}
+                        >
+                          Editar
+                        </button>
+                        {reloj.tiene_subasta_activa == 1 && (
                           <p
                             className="text-xs mt-0.5 text-center"
                             style={{ color: "#a07850" }}
@@ -323,7 +291,41 @@ export default function ObjetosAdminPage() {
                             En subasta activa
                           </p>
                         )}
-                    </div>
+                      </div>
+                    )}
+
+                    {/* Eliminar/Reactivar — solo Administrador */}
+                    {isAdmin && (
+                      <div className="flex flex-col">
+                        <button
+                          disabled={
+                            reloj.estado === "activo" &&
+                            reloj.tiene_subasta_activa == 1
+                          }
+                          className={`px-3 py-1 rounded text-white ${reloj.estado === "activo" ? "bg-red-500" : "bg-green-600"} ${reloj.estado === "activo" && reloj.tiene_subasta_activa == 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+                          onClick={() => {
+                            if (
+                              reloj.estado === "activo" &&
+                              reloj.tiene_subasta_activa == 1
+                            )
+                              return;
+                            cambiarEstado(reloj.id_reloj);
+                          }}
+                        >
+                          {reloj.estado === "activo" ? "Eliminar" : "Reactivar"}
+                        </button>
+                        {reloj.estado === "activo" &&
+                          reloj.tiene_subasta_activa == 1 && (
+                            <p
+                              className="text-xs mt-0.5 text-center"
+                              style={{ color: "#a07850" }}
+                            >
+                              En subasta activa
+                            </p>
+                          )}
+                      </div>
+                    )}
+
                   </td>
                 </tr>
               ))}
@@ -529,12 +531,10 @@ export default function ObjetosAdminPage() {
               </div>
 
               <div className="px-6 py-5 space-y-4 text-[#5b3717]">
-                {/* Vendedor provisional */}
+                {/* Vendedor — usuario logueado */}
                 <div className="text-sm" style={{ color: "#5b3717" }}>
                   <strong>Vendedor:</strong>{" "}
-                  {vendedorProvisional
-                    ? `${vendedorProvisional.nombre} ${vendedorProvisional.apellido}`
-                    : "Cargando..."}
+                  {user ? `${user.nombre} ${user.apellido}` : "Cargando..."}
                 </div>
 
                 {/* Modelo */}

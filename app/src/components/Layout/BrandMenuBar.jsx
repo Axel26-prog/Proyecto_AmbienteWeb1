@@ -45,7 +45,7 @@ export default function BrandMenuBar() {
     const location = useLocation();
     const { hasRole } = useAuth();
 
-    const isAdmin = hasRole("Administrador");
+    const isAdmin = hasRole("Administrador") || hasRole("Vendedor");
 
     const visibleOptions = MENU_OPTIONS.filter(
         (item) => !item.adminOnly || isAdmin
