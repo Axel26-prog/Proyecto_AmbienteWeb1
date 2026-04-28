@@ -23,25 +23,33 @@ export default function LoginPage() {
   } = useForm({ resolver: yupResolver(schema) });
 
   const onSubmit = async (data) => {
-    try {
-      const response = await loginUsuario(data);
+  try {
+    const response = await loginUsuario(data);
 
-      if (response?.success && response?.token) {
-        login(response.token, response.data);
-        toast.success("Inicio de sesión exitoso");
+    if (response?.success && response?.token) {
+      login(response.token, response.data);
+      toast.success("Inicio de sesión exitoso");
 
-        const rol = response.data?.rol;
-        if (rol === "Administrador") navigate("/usuarios");
-        else if (rol === "Vendedor") navigate("/subastas");
-        else                         navigate("/");
-      } else {
-        toast.error(response?.message || "Credenciales inválidas");
-      }
-    } catch (error) {
-      toast.error("Error al iniciar sesión");
-      console.error(error);
+      const rol = response.data?.rol;
+
+      if (rol === "Administrador") navigate("/usuarios");
+      else if (rol === "Vendedor") navigate("/subastas");
+      else navigate("/");
+    } else {
+      toast.error(response?.message || "Credenciales inválidas");
     }
-  };
+  } catch (error) {
+    console.error("Error login:", error);
+
+    const mensaje =
+      error.response?.data?.message || // axios
+      error.response?.data?.error ||   // axios
+      error.message ||                 // fetch con throw new Error(...)
+      "Error al iniciar sesión";
+
+    toast.error(mensaje);
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f7f7f7]">
